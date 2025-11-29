@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contacts Contact[]
+  events   Event[]
+  tags     Tag[]
+}
+
+model Contact {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name     String
+  nickname String?
+  notes    String?
+
+  // How you know this person (e.g., "Mom", "College roommate", "Wife's coworker")
+  relationship String?
+
+  // Cadence tracking
+  cadenceDays  Int?
+  snoozedUntil DateTime?
+  awayUntil    DateTime? // Contact is away (e.g., traveling) - due date shifts to after return
+
+  // Funnel stage (stored as string: PROSPECT, ACQUAINTANCE, DEVELOPING, ESTABLISHED, CLOSE, DORMANT)
+  funnelStage String @default("ACQUAINTANCE")
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tags   ContactTag[]
+  events EventContact[]
+
+  @@index([userId])
+}
+
+model Tag {
+  id     String  @id @default(cuid())
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name  String
+  color String?
+
+  contacts ContactTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model ContactTag {
+  contactId String
+  tagId     String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contactId, tagId])
+}
+
+model Event {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title String?
+  date  DateTime
+  // Event type stored as string: HANGOUT, CALL, MESSAGE, EVENT, OTHER
+  eventType String @default("HANGOUT")
+
+  notes String?
+
+  // Calendar integration (Phase 3+)
+  externalId     String?
+  externalSource String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contacts    EventContact[]
+  actionItems ActionItem[]
+
+  @@index([userId])
+  @@index([date])
+}
+
+model EventContact {
+  eventId   String
+  contactId String
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, contactId])
+}
+
+model ActionItem {
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  description String
+  completed   Boolean   @default(false)
+  dueDate     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
