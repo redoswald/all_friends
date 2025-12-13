@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import crypto from "crypto";
+import { cache } from "react";
 
 const SESSION_COOKIE = "prm_session";
 
@@ -85,7 +86,8 @@ export async function signOut() {
   redirect("/login");
 }
 
-export async function getUser() {
+// Cache getUser within a single request to avoid duplicate DB calls
+export const getUser = cache(async () => {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
 
@@ -98,7 +100,7 @@ export async function getUser() {
   });
 
   return user;
-}
+});
 
 export async function requireUser() {
   const user = await getUser();
