@@ -18,7 +18,14 @@
       "Bash(cat:*)",
       "Bash(git remote add:*)",
       "Bash(git remote set-url:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(tree:*)",
+      "Bash(sqlite3:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(ls:*)",
+      "Bash(touch:*)"
     ],
     "deny": [],
     "ask": []
