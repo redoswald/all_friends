@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sheet";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: Home },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/contacts", label: "Contacts", icon: Users },
   { href: "/events", label: "Events", icon: Calendar },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
@@ -31,15 +31,15 @@ export function Nav() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/" className="font-semibold text-lg">
-              PRM
+            <Link href="/dashboard" className="font-semibold text-lg">
+              All Friends
             </Link>
             {/* Desktop navigation */}
             <div className="hidden md:flex items-center gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href));
+                  pathname.startsWith(item.href + "/");
                 return (
                   <Link
                     key={item.href}
@@ -82,7 +82,7 @@ export function Nav() {
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href ||
-                    (item.href !== "/" && pathname.startsWith(item.href));
+                    pathname.startsWith(item.href + "/");
                   return (
                     <Link
                       key={item.href}

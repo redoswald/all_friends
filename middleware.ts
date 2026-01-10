@@ -4,10 +4,16 @@ const SESSION_COOKIE = "prm_session";
 
 export function middleware(request: NextRequest) {
   const sessionId = request.cookies.get(SESSION_COOKIE)?.value;
+  const pathname = request.nextUrl.pathname;
 
-  const isAuthRoute =
-    request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/signup");
+  // Public routes that don't require authentication
+  const isPublicRoute = pathname === "/";
+  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
+
+  // Allow public routes without authentication
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
 
   // Redirect to login if not authenticated and trying to access protected route
   if (!sessionId && !isAuthRoute) {
@@ -16,10 +22,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect to home if authenticated and trying to access auth routes
+  // Redirect to dashboard if authenticated and trying to access auth routes
   if (sessionId && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
