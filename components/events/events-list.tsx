@@ -134,7 +134,7 @@ export function EventsList({ events, contacts }: EventsListProps) {
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="text-red-600"
+                          className="text-coral-400"
                           onSelect={() => handleDelete(event.id)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />

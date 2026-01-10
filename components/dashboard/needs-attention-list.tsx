@@ -76,19 +76,19 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
       {contacts.map((contact) => (
         <div
           key={contact.id}
-          className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border gap-2"
+          className="flex items-center justify-between p-3 rounded-lg hover:bg-coral-50 transition-colors border gap-2"
         >
           <Link
             href={`/contacts/${contact.id}`}
-            className="flex items-center gap-3 flex-1 min-w-0"
+            className="flex items-center gap-3 flex-1 min-w-0 group"
           >
             <div
               className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                contact.status.isOverdue ? "bg-red-500" : "bg-amber-500"
+                contact.status.isOverdue ? "bg-coral-300" : "bg-amber-500"
               }`}
             />
             <div className="min-w-0">
-              <p className="font-medium truncate">{contact.name}</p>
+              <p className="font-medium truncate group-hover:text-coral-400">{contact.name}</p>
               <p className="text-sm text-gray-500 truncate">
                 {FUNNEL_STAGE_LABELS[contact.funnelStage as FunnelStage]}
                 {contact.lastEventDate && (
@@ -124,10 +124,10 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
                   disabled={snoozing === contact.id}
                 >
                   <Badge
-                    variant={contact.status.isOverdue ? "destructive" : "default"}
+                    variant="default"
                     className={
                       contact.status.isOverdue
-                        ? "cursor-pointer whitespace-nowrap"
+                        ? "bg-coral-300 hover:bg-coral-400 cursor-pointer whitespace-nowrap"
                         : "bg-amber-500 hover:bg-amber-600 cursor-pointer whitespace-nowrap"
                     }
                   >
@@ -143,7 +143,7 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
                       key={option.days}
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start hover:text-coral-400 hover:bg-coral-50"
                       onClick={() => handleSnooze(contact.id, option.days)}
                       disabled={snoozing === contact.id}
                     >

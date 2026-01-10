@@ -45,10 +45,10 @@ export function Nav() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                      "flex items-center gap-2 px-3 py-2 text-sm transition-colors border-b-2",
                       isActive
-                        ? "bg-gray-100 text-gray-900"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        ? "text-coral-300 border-coral-300"
+                        : "text-gray-600 border-transparent hover:text-coral-300"
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -61,7 +61,7 @@ export function Nav() {
 
           {/* Desktop sign out */}
           <form action={signOut} className="hidden md:block">
-            <Button variant="ghost" size="sm" className="text-gray-600">
+            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-coral-300 hover:bg-coral-50">
               <LogOut className="h-4 w-4 mr-2" />
               Sign out
             </Button>
@@ -91,8 +91,8 @@ export function Nav() {
                       className={cn(
                         "flex items-center gap-3 px-3 py-3 text-base rounded-md transition-colors",
                         isActive
-                          ? "bg-gray-100 text-gray-900"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          ? "bg-coral-50 text-coral-300"
+                          : "text-gray-600 hover:text-coral-300 hover:bg-coral-50"
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -104,7 +104,7 @@ export function Nav() {
                 <form action={signOut}>
                   <button
                     type="submit"
-                    className="flex items-center gap-3 px-3 py-3 text-base rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-50 w-full"
+                    className="flex items-center gap-3 px-3 py-3 text-base rounded-md transition-colors text-gray-600 hover:text-coral-300 hover:bg-coral-50 w-full"
                   >
                     <LogOut className="h-5 w-5" />
                     Sign out

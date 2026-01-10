@@ -169,7 +169,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                 {contact.status.isAway ? "Update Away" : "Set Away"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-red-600"
+                className="text-coral-400"
                 onSelect={handleDelete}
                 disabled={deleting}
               >
@@ -431,7 +431,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-red-600"
+                            className="text-coral-400"
                             onSelect={() => handleDeleteEvent(event.id)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />

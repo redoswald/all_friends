@@ -25,7 +25,21 @@
       "Bash(sqlite3:*)",
       "Bash(npx prisma db push:*)",
       "Bash(ls:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(npm update:*)",
+      "Bash(docker --version:*)",
+      "Bash(brew list:*)",
+      "Bash(brew services:*)",
+      "Bash(pg_isready:*)",
+      "Bash(brew reinstall:*)",
+      "Bash(createdb:*)",
+      "Bash(psql:*)",
+      "Bash(npx vercel:*)",
+      "Bash(npx dotenv:*)",
+      "Bash(set -a)",
+      "Bash(source:*)",
+      "Bash(set:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

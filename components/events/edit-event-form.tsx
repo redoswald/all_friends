@@ -165,7 +165,7 @@ export function EditEventForm({
             {showCreateOption && (
               <button
                 type="button"
-                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-blue-600 border-b"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-coral-50 flex items-center gap-2 text-coral-400 border-b"
                 onClick={() => addNewContact(searchTerm)}
               >
                 <Plus className="h-4 w-4" />
@@ -239,7 +239,7 @@ export function EditEventForm({
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-coral-400">{error}</p>}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}

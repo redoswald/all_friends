@@ -117,52 +117,62 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-teal-50 rounded-full">
+                <Users className="h-4 w-4 text-teal-300" />
+              </div>
               <span className="text-sm text-gray-500">Contacts</span>
             </div>
-            <p className="text-2xl font-semibold mt-1">{stats.totalContacts}</p>
+            <p className="text-2xl font-semibold mt-2">{stats.totalContacts}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-500" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-teal-50 rounded-full">
+                <Calendar className="h-4 w-4 text-teal-300" />
+              </div>
               <span className="text-sm text-gray-500">Events this month</span>
             </div>
-            <p className="text-2xl font-semibold mt-1">{stats.eventsThisMonth}</p>
+            <p className="text-2xl font-semibold mt-2">{stats.eventsThisMonth}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-500" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-coral-50 rounded-full">
+                <AlertCircle className="h-4 w-4 text-coral-300" />
+              </div>
               <span className="text-sm text-gray-500">Overdue</span>
             </div>
-            <p className="text-2xl font-semibold mt-1 text-red-600">{stats.overdueContacts}</p>
+            <p className="text-2xl font-semibold mt-2 text-coral-400">{stats.overdueContacts}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-500" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-50 rounded-full">
+                <Clock className="h-4 w-4 text-amber-500" />
+              </div>
               <span className="text-sm text-gray-500">Due soon</span>
             </div>
-            <p className="text-2xl font-semibold mt-1 text-amber-600">{stats.dueContacts}</p>
+            <p className="text-2xl font-semibold mt-2 text-amber-600">{stats.dueContacts}</p>
           </CardContent>
         </Card>
 
         {stats.incompleteContacts > 0 && (
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center gap-2">
-                <UserPlus className="h-4 w-4 text-blue-500" />
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-teal-50 rounded-full">
+                  <UserPlus className="h-4 w-4 text-teal-300" />
+                </div>
                 <span className="text-sm text-gray-500">Incomplete</span>
               </div>
-              <p className="text-2xl font-semibold mt-1 text-blue-600">{stats.incompleteContacts}</p>
+              <p className="text-2xl font-semibold mt-2 text-teal-400">{stats.incompleteContacts}</p>
             </CardContent>
           </Card>
         )}
@@ -194,12 +204,12 @@ export default async function DashboardPage() {
                 <Link
                   key={contact.id}
                   href={`/contacts/${contact.id}`}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border"
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-coral-50 transition-colors border"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <div className="w-2 h-2 rounded-full bg-teal-300" />
                     <div>
-                      <p className="font-medium">{contact.name}</p>
+                      <p className="font-medium hover:text-coral-400">{contact.name}</p>
                       <p className="text-sm text-gray-500">
                         Added {new Date(contact.createdAt).toLocaleDateString("en-US", {
                           month: "short",
@@ -208,7 +218,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="border-blue-500 text-blue-600">
+                  <Badge variant="outline" className="border-teal-300 text-teal-400">
                     Needs details
                   </Badge>
                 </Link>

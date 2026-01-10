@@ -233,7 +233,7 @@ export function EditContactForm({ contact, tags, onSuccess }: EditContactFormPro
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-coral-400">{error}</p>}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}

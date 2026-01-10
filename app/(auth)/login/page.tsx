@@ -53,7 +53,7 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-coral-400">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
@@ -61,7 +61,7 @@ export default function LoginPage() {
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-blue-600 hover:underline">
+            <Link href="/signup" className="text-coral-300 hover:text-coral-400 hover:underline">
               Sign up
             </Link>
           </p>

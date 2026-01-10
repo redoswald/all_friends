@@ -64,7 +64,7 @@ export default function SignUpPage() {
               />
             </div>
             {error && (
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-coral-400">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating account..." : "Create account"}
@@ -72,7 +72,7 @@ export default function SignUpPage() {
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-coral-300 hover:text-coral-400 hover:underline">
               Sign in
             </Link>
           </p>
