@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -105,28 +106,15 @@ export default async function LandingPage() {
             </div>
 
             {/* Right - Illustration */}
-            <div className="hidden md:flex justify-center">
-              <div className="relative w-80 h-80">
-                {/* Abstract friendly shapes representing connection */}
-                <div className="absolute top-0 right-8 w-32 h-32 bg-coral-100 rounded-full opacity-80" />
-                <div className="absolute bottom-8 left-0 w-40 h-40 bg-teal-100 rounded-full opacity-80" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white rounded-3xl shadow-lg border border-gray-100 flex items-center justify-center">
-                  <div className="flex -space-x-4">
-                    <div className="w-16 h-16 bg-coral-200 rounded-full border-4 border-white flex items-center justify-center">
-                      <Users className="w-8 h-8 text-coral-400" />
-                    </div>
-                    <div className="w-16 h-16 bg-teal-200 rounded-full border-4 border-white flex items-center justify-center">
-                      <Bell className="w-8 h-8 text-teal-400" />
-                    </div>
-                    <div className="w-16 h-16 bg-coral-100 rounded-full border-4 border-white flex items-center justify-center">
-                      <Calendar className="w-8 h-8 text-coral-300" />
-                    </div>
-                  </div>
-                </div>
-                {/* Small floating elements */}
-                <div className="absolute top-4 left-12 w-8 h-8 bg-teal-200 rounded-lg rotate-12 opacity-60" />
-                <div className="absolute bottom-16 right-4 w-6 h-6 bg-coral-200 rounded-full opacity-60" />
-              </div>
+            <div className="hidden md:flex justify-center items-center">
+              <Image
+                src="/flat_vector_homepage.png"
+                alt="People connecting and building relationships"
+                width={500}
+                height={350}
+                className="rounded-2xl"
+                priority
+              />
             </div>
           </div>
         </div>
