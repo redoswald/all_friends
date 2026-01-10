@@ -49,3 +49,4 @@ prisma/dev.db
 
 # Database backups
 /backups
+.env*.local

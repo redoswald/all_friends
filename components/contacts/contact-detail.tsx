@@ -23,13 +23,24 @@ import {
 import { ArrowLeft, MoreHorizontal, Pencil, Trash2, Plus, Calendar, Plane } from "lucide-react";
 import { ContactStatus, getStatusText, CADENCE_OPTIONS, getAnnualFrequencyText } from "@/lib/cadence";
 import { FUNNEL_STAGE_LABELS, EVENT_TYPE_LABELS } from "@/types";
-import { Contact, Tag, Event } from "@prisma/client";
+import { Contact, Tag, Event, ContactField, ImportantDate, ContactRelationship } from "@prisma/client";
 import { FunnelStage, EventType } from "@/types";
 import { EditContactForm } from "./edit-contact-form";
 import { LogEventForm } from "@/components/events/log-event-form";
 import { EditEventForm } from "@/components/events/edit-event-form";
 import { SetAwayDialog } from "./set-away-dialog";
+import { ContactFieldsSection } from "./contact-fields-section";
+import { ImportantDatesSection } from "./important-dates-section";
+import { RelationshipsSection } from "./relationships-section";
 import { formatDate } from "@/lib/date-utils";
+
+interface RelationshipWithRelated extends ContactRelationship {
+  relatedContact: { id: string; name: string };
+}
+
+interface RelationshipFromOthers extends ContactRelationship {
+  contact: { id: string; name: string };
+}
 
 interface ContactWithRelations extends Contact {
   tags: { tag: Tag }[];
@@ -38,6 +49,10 @@ interface ContactWithRelations extends Contact {
       contacts: { contact: { id: string; name: string } }[];
     };
   }[];
+  fields: ContactField[];
+  importantDates: ImportantDate[];
+  relationships: RelationshipWithRelated[];
+  relatedRelationships: RelationshipFromOthers[];
   lastEventDate: Date | null;
   status: ContactStatus;
   snoozedUntil: Date | null;
@@ -330,6 +345,24 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
               )}
             </CardContent>
           </Card>
+
+          <ContactFieldsSection
+            contactId={contact.id}
+            fields={contact.fields}
+          />
+
+          <ImportantDatesSection
+            contactId={contact.id}
+            dates={contact.importantDates}
+          />
+
+          <RelationshipsSection
+            contactId={contact.id}
+            contactName={contact.name}
+            relationships={contact.relationships}
+            relatedRelationships={contact.relatedRelationships}
+            allContacts={contacts}
+          />
 
           <Card>
             <CardHeader>

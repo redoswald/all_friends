@@ -32,6 +32,27 @@ async function getContact(id: string) {
         },
         orderBy: { event: { date: "desc" } },
       },
+      // New Monica-like features
+      fields: {
+        orderBy: { sortOrder: "asc" },
+      },
+      importantDates: {
+        orderBy: [{ dateType: "asc" }, { month: "asc" }, { day: "asc" }],
+      },
+      relationships: {
+        include: {
+          relatedContact: {
+            select: { id: true, name: true },
+          },
+        },
+      },
+      relatedRelationships: {
+        include: {
+          contact: {
+            select: { id: true, name: true },
+          },
+        },
+      },
     },
   });
 

@@ -63,3 +63,48 @@ export type UpdateContactInput = z.infer<typeof updateContactSchema>;
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 export type UpdateEventInput = z.infer<typeof updateEventSchema>;
 export type CreateTagInput = z.infer<typeof createTagSchema>;
+
+// Contact Field Schemas
+export const createContactFieldSchema = z.object({
+  fieldType: z.enum(["EMAIL", "PHONE", "SOCIAL", "CUSTOM"]),
+  label: z.string().optional().nullable(),
+  value: z.string().min(1, "Value is required"),
+  protocol: z.string().optional().nullable(),
+  sortOrder: z.number().int().optional().default(0),
+});
+
+export const updateContactFieldSchema = createContactFieldSchema.partial();
+
+export type CreateContactFieldInput = z.infer<typeof createContactFieldSchema>;
+export type UpdateContactFieldInput = z.infer<typeof updateContactFieldSchema>;
+
+// Important Date Schemas
+export const createImportantDateSchema = z.object({
+  dateType: z.enum(["BIRTHDAY", "ANNIVERSARY", "CUSTOM"]),
+  label: z.string().optional().nullable(),
+  day: z.number().int().min(1).max(31),
+  month: z.number().int().min(1).max(12),
+  year: z.number().int().min(1900).max(2100).optional().nullable(),
+});
+
+export const updateImportantDateSchema = createImportantDateSchema.partial();
+
+export type CreateImportantDateInput = z.infer<typeof createImportantDateSchema>;
+export type UpdateImportantDateInput = z.infer<typeof updateImportantDateSchema>;
+
+// Contact Relationship Schemas
+export const createRelationshipSchema = z.object({
+  relatedId: z.string().min(1, "Related contact is required"),
+  relationshipType: z.enum([
+    "SPOUSE",
+    "PARTNER",
+    "PARENT",
+    "CHILD",
+    "SIBLING",
+    "FRIEND",
+    "COLLEAGUE",
+    "BOSS",
+  ]),
+});
+
+export type CreateRelationshipInput = z.infer<typeof createRelationshipSchema>;

@@ -48,6 +48,12 @@ model Contact {
   tags   ContactTag[]
   events EventContact[]
 
+  // Monica-like features
+  fields               ContactField[]
+  importantDates       ImportantDate[]
+  relationships        ContactRelationship[] @relation("ContactRelationships")
+  relatedRelationships ContactRelationship[] @relation("RelatedRelationships")
+
   @@index([userId])
 }
 
@@ -120,4 +126,61 @@ model ActionItem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Contact Fields (email, phone, social media, custom)
+model ContactField {
+  id        String  @id @default(cuid())
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  fieldType String  // EMAIL, PHONE, SOCIAL, CUSTOM
+  label     String? // "Work", "Personal", "Mobile", "WhatsApp", etc.
+  value     String  // The actual value (email address, phone number, URL, etc.)
+  protocol  String? // mailto:, tel:, https://wa.me/, etc.
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contactId])
+}
+
+// Important Dates (birthday, anniversaries, custom)
+model ImportantDate {
+  id        String  @id @default(cuid())
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  dateType String  // BIRTHDAY, ANNIVERSARY, CUSTOM
+  label    String? // Custom label like "Wedding Anniversary"
+  day      Int     // 1-31
+  month    Int     // 1-12
+  year     Int?    // Nullable for unknown year
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contactId])
+  @@index([month, day]) // For upcoming date queries
+}
+
+// Contact Relationships (bidirectional links between contacts)
+model ContactRelationship {
+  id String @id @default(cuid())
+
+  contactId String
+  contact   Contact @relation("ContactRelationships", fields: [contactId], references: [id], onDelete: Cascade)
+
+  relatedId      String
+  relatedContact Contact @relation("RelatedRelationships", fields: [relatedId], references: [id], onDelete: Cascade)
+
+  relationshipType String // SPOUSE, PARTNER, PARENT, CHILD, SIBLING, FRIEND, COLLEAGUE, BOSS
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([contactId, relatedId])
+  @@index([contactId])
+  @@index([relatedId])
 }
