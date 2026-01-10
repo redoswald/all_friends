@@ -33,6 +33,9 @@ export async function GET(
           },
           orderBy: { event: { date: "desc" } },
         },
+        oooPeriods: {
+          orderBy: { startDate: "asc" },
+        },
       },
     });
 
@@ -42,7 +45,7 @@ export async function GET(
 
     const lastEvent = contact.events[0]?.event;
     const lastEventDate = lastEvent?.date ?? null;
-    const status = calculateContactStatus(lastEventDate, contact.cadenceDays, null, contact.awayUntil);
+    const status = calculateContactStatus(lastEventDate, contact.cadenceDays, null, contact.oooPeriods);
 
     return NextResponse.json({
       ...contact,

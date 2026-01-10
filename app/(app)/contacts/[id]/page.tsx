@@ -53,6 +53,9 @@ async function getContact(id: string) {
           },
         },
       },
+      oooPeriods: {
+        orderBy: { startDate: "asc" },
+      },
     },
   });
 
@@ -72,7 +75,7 @@ async function getContact(id: string) {
   const nextEvent = futureEvents[futureEvents.length - 1]?.event;
   const nextEventDate = nextEvent?.date ?? null;
 
-  const status = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.awayUntil);
+  const status = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.oooPeriods);
 
   return {
     ...contact,

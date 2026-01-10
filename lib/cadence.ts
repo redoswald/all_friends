@@ -1,3 +1,9 @@
+export interface OOOPeriod {
+  startDate: Date;
+  endDate: Date;
+  label?: string | null;
+}
+
 export interface ContactStatus {
   daysSinceLastEvent: number | null;
   daysUntilDue: number | null;
@@ -9,13 +15,15 @@ export interface ContactStatus {
   daysUntilNextEvent: number | null;
   isAway: boolean;
   daysUntilBack: number | null;
+  currentOOOPeriod: { label?: string | null; endDate: Date } | null;
+  upcomingOOOCount: number;
 }
 
 export function calculateContactStatus(
   lastEventDate: Date | null,
   cadenceDays: number | null,
   nextEventDate: Date | null = null,
-  awayUntil: Date | null = null
+  oooPeriods: OOOPeriod[] = []
 ): ContactStatus {
   const now = new Date();
   const daysSince = lastEventDate ? daysBetween(lastEventDate, now) : null;
@@ -23,9 +31,16 @@ export function calculateContactStatus(
   const hasUpcomingEvent = nextEventDate !== null;
   const daysUntilNextEvent = nextEventDate ? daysBetween(now, nextEventDate) : null;
 
-  // Check if contact is currently away
-  const isAway = awayUntil !== null && awayUntil > now;
-  const daysUntilBack = isAway ? daysBetween(now, awayUntil) : null;
+  // Find current OOO period (if contact is currently away)
+  const currentOOOPeriod = oooPeriods.find(
+    (p) => p.startDate <= now && p.endDate >= now
+  ) || null;
+
+  const isAway = currentOOOPeriod !== null;
+  const daysUntilBack = isAway ? daysBetween(now, currentOOOPeriod!.endDate) : null;
+
+  // Count future OOO periods (for UI badge)
+  const upcomingOOOCount = oooPeriods.filter((p) => p.startDate > now).length;
 
   if (!lastEventDate || !cadenceDays) {
     return {
@@ -40,17 +55,20 @@ export function calculateContactStatus(
       daysUntilNextEvent,
       isAway,
       daysUntilBack,
+      currentOOOPeriod: currentOOOPeriod
+        ? { label: currentOOOPeriod.label, endDate: currentOOOPeriod.endDate }
+        : null,
+      upcomingOOOCount,
     };
   }
 
-  // Calculate base days until due
-  let daysUntil = cadenceDays - daysSince!;
+  // Calculate base due date
+  const baseDueDate = new Date(lastEventDate);
+  baseDueDate.setDate(baseDueDate.getDate() + cadenceDays);
 
-  // If contact is away and would be due before they return,
-  // push the due date to after they return
-  if (isAway && daysUntil < daysUntilBack!) {
-    daysUntil = daysUntilBack!;
-  }
+  // Find the next available date after all OOO periods
+  const adjustedDueDate = findNextAvailableDate(baseDueDate, oooPeriods);
+  const daysUntil = daysBetween(now, adjustedDueDate) * (adjustedDueDate >= now ? 1 : -1);
 
   return {
     daysSinceLastEvent: daysSince,
@@ -64,11 +82,40 @@ export function calculateContactStatus(
     daysUntilNextEvent,
     isAway,
     daysUntilBack,
+    currentOOOPeriod: currentOOOPeriod
+      ? { label: currentOOOPeriod.label, endDate: currentOOOPeriod.endDate }
+      : null,
+    upcomingOOOCount,
   };
 }
 
+/**
+ * Find the next available date that doesn't fall within any OOO period.
+ * If the date falls within a period, push it to the day after that period ends.
+ * Handles overlapping periods by iterating until a clear date is found.
+ */
+function findNextAvailableDate(date: Date, periods: OOOPeriod[]): Date {
+  let result = new Date(date);
+  let changed = true;
+
+  // Keep iterating until we find a date outside all periods
+  while (changed) {
+    changed = false;
+    for (const period of periods) {
+      if (result >= period.startDate && result <= period.endDate) {
+        // Push to the day after this period ends
+        result = new Date(period.endDate);
+        result.setDate(result.getDate() + 1);
+        changed = true;
+      }
+    }
+  }
+
+  return result;
+}
+
 function daysBetween(date1: Date, date2: Date): number {
-  const diffTime = Math.abs(date2.getTime() - date1.getTime());
+  const diffTime = date2.getTime() - date1.getTime();
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 }
 

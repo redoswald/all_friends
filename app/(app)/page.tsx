@@ -40,6 +40,9 @@ async function getDashboardData() {
         include: { event: true },
         orderBy: { event: { date: "desc" } },
       },
+      oooPeriods: {
+        orderBy: { startDate: "asc" },
+      },
     },
   });
 
@@ -53,7 +56,7 @@ async function getDashboardData() {
     const nextEvent = futureEvents[futureEvents.length - 1]?.event;
     const nextEventDate = nextEvent?.date ?? null;
 
-    const status = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.awayUntil);
+    const status = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.oooPeriods);
     return {
       ...contact,
       lastEventDate,

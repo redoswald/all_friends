@@ -23,7 +23,7 @@ import {
 import { ArrowLeft, MoreHorizontal, Pencil, Trash2, Plus, Calendar, Plane } from "lucide-react";
 import { ContactStatus, getStatusText, CADENCE_OPTIONS, getAnnualFrequencyText } from "@/lib/cadence";
 import { FUNNEL_STAGE_LABELS, EVENT_TYPE_LABELS } from "@/types";
-import { Contact, Tag, Event, ContactField, ImportantDate, ContactRelationship } from "@prisma/client";
+import { Contact, Tag, Event, ContactField, ImportantDate, ContactRelationship, ContactOOOPeriod } from "@prisma/client";
 import { FunnelStage, EventType } from "@/types";
 import { EditContactForm } from "./edit-contact-form";
 import { LogEventForm } from "@/components/events/log-event-form";
@@ -32,6 +32,7 @@ import { SetAwayDialog } from "./set-away-dialog";
 import { ContactFieldsSection } from "./contact-fields-section";
 import { ImportantDatesSection } from "./important-dates-section";
 import { RelationshipsSection } from "./relationships-section";
+import { OOOPeriodsSection } from "./ooo-periods-section";
 import { formatDate } from "@/lib/date-utils";
 
 interface RelationshipWithRelated extends ContactRelationship {
@@ -53,10 +54,10 @@ interface ContactWithRelations extends Contact {
   importantDates: ImportantDate[];
   relationships: RelationshipWithRelated[];
   relatedRelationships: RelationshipFromOthers[];
+  oooPeriods: ContactOOOPeriod[];
   lastEventDate: Date | null;
   status: ContactStatus;
   snoozedUntil: Date | null;
-  awayUntil: Date | null;
 }
 
 interface ContactDetailProps {
@@ -217,7 +218,13 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
       <SetAwayDialog
         contactId={contact.id}
         contactName={contact.name}
-        currentAwayUntil={contact.awayUntil}
+        currentOOOPeriod={contact.status.currentOOOPeriod ? {
+          id: contact.oooPeriods.find(p =>
+            new Date(p.startDate) <= new Date() && new Date(p.endDate) >= new Date()
+          )?.id || "",
+          endDate: contact.status.currentOOOPeriod.endDate,
+          label: contact.status.currentOOOPeriod.label,
+        } : null}
         open={awayDialogOpen}
         onOpenChange={setAwayDialogOpen}
       />
@@ -263,16 +270,17 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Status</p>
-                  {contact.status.isAway ? (
+                  {contact.status.isAway && contact.status.currentOOOPeriod ? (
                     <Badge
                       variant="outline"
                       className="border-purple-400 text-purple-600 bg-purple-50"
                     >
                       <Plane className="h-3 w-3 mr-1" />
-                      Away until {contact.awayUntil && new Date(contact.awayUntil).toLocaleDateString("en-US", {
+                      Away until {new Date(contact.status.currentOOOPeriod.endDate).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}
+                      {contact.status.currentOOOPeriod.label && ` (${contact.status.currentOOOPeriod.label})`}
                     </Badge>
                   ) : contact.snoozedUntil && new Date(contact.snoozedUntil) > new Date() ? (
                     <Badge
@@ -362,6 +370,11 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
             relationships={contact.relationships}
             relatedRelationships={contact.relatedRelationships}
             allContacts={contacts}
+          />
+
+          <OOOPeriodsSection
+            contactId={contact.id}
+            periods={contact.oooPeriods}
           />
 
           <Card>

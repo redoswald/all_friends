@@ -46,6 +46,9 @@ async function getContacts(searchParams: {
         include: { event: true },
         orderBy: { event: { date: "desc" } },
       },
+      oooPeriods: {
+        orderBy: { startDate: "asc" },
+      },
     },
     orderBy: { name: "asc" },
   });
@@ -61,7 +64,7 @@ async function getContacts(searchParams: {
     const nextEvent = futureEvents[futureEvents.length - 1]?.event;
     const nextEventDate = nextEvent?.date ?? null;
 
-    const contactStatus = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.awayUntil);
+    const contactStatus = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.oooPeriods);
     return {
       ...contact,
       lastEventDate,

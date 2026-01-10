@@ -20,10 +20,16 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+interface CurrentOOOPeriod {
+  id: string;
+  endDate: Date;
+  label?: string | null;
+}
+
 interface SetAwayDialogProps {
   contactId: string;
   contactName: string;
-  currentAwayUntil: Date | null;
+  currentOOOPeriod: CurrentOOOPeriod | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -31,27 +37,32 @@ interface SetAwayDialogProps {
 export function SetAwayDialog({
   contactId,
   contactName,
-  currentAwayUntil,
+  currentOOOPeriod,
   open,
   onOpenChange,
 }: SetAwayDialogProps) {
   const router = useRouter();
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [awayUntil, setAwayUntil] = useState<Date | undefined>(
-    currentAwayUntil ? new Date(currentAwayUntil) : undefined
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    currentOOOPeriod ? new Date(currentOOOPeriod.endDate) : undefined
   );
   const [loading, setLoading] = useState(false);
 
-  const isCurrentlyAway = currentAwayUntil && new Date(currentAwayUntil) > new Date();
+  const isCurrentlyAway = currentOOOPeriod !== null;
 
   const handleSubmit = async () => {
+    if (!endDate) return;
+
     setLoading(true);
     try {
-      const res = await fetch(`/api/contacts/${contactId}/away`, {
+      // Create a new OOO period from today to the selected end date
+      const res = await fetch(`/api/contacts/${contactId}/ooo-periods`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          awayUntil: awayUntil ? awayUntil.toISOString() : null,
+          startDate: format(new Date(), "yyyy-MM-dd"),
+          endDate: format(endDate, "yyyy-MM-dd"),
+          label: null,
         }),
       });
 
@@ -60,26 +71,28 @@ export function SetAwayDialog({
         router.refresh();
       } else {
         const data = await res.json();
-        console.error("Away API error:", data);
+        console.error("OOO Period API error:", data);
       }
     } catch (error) {
-      console.error("Away fetch error:", error);
+      console.error("OOO Period fetch error:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleClearAway = async () => {
+    if (!currentOOOPeriod) return;
+
     setLoading(true);
     try {
-      const res = await fetch(`/api/contacts/${contactId}/away`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ awayUntil: null }),
-      });
+      // Delete the current active OOO period
+      const res = await fetch(
+        `/api/contacts/${contactId}/ooo-periods/${currentOOOPeriod.id}`,
+        { method: "DELETE" }
+      );
 
       if (res.ok) {
-        setAwayUntil(undefined);
+        setEndDate(undefined);
         onOpenChange(false);
         router.refresh();
       }
@@ -100,9 +113,16 @@ export function SetAwayDialog({
         </DialogHeader>
 
         <div className="space-y-4 pt-4">
+          {isCurrentlyAway && (
+            <p className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded">
+              Currently away until {format(new Date(currentOOOPeriod.endDate), "PPP")}
+              {currentOOOPeriod.label && ` (${currentOOOPeriod.label})`}
+            </p>
+          )}
+
           <div>
             <label className="text-sm font-medium mb-2 block">
-              Back on
+              {isCurrentlyAway ? "Set new return date" : "Back on"}
             </label>
             <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
@@ -110,19 +130,19 @@ export function SetAwayDialog({
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !awayUntil && "text-muted-foreground"
+                    !endDate && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {awayUntil ? format(awayUntil, "PPP") : "Select return date"}
+                  {endDate ? format(endDate, "PPP") : "Select return date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={awayUntil}
+                  selected={endDate}
                   onSelect={(date) => {
-                    setAwayUntil(date);
+                    setEndDate(date);
                     setCalendarOpen(false);
                   }}
                   disabled={(date) => date < new Date()}
@@ -145,7 +165,7 @@ export function SetAwayDialog({
             )}
             <Button
               onClick={handleSubmit}
-              disabled={loading || !awayUntil}
+              disabled={loading || !endDate}
               className="flex-1"
             >
               {loading ? "Saving..." : "Save"}

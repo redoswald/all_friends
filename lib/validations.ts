@@ -108,3 +108,22 @@ export const createRelationshipSchema = z.object({
 });
 
 export type CreateRelationshipInput = z.infer<typeof createRelationshipSchema>;
+
+// OOO Period Schemas
+export const createOOOPeriodSchema = z.object({
+  startDate: z.string().transform(parseLocalDateToUTC),
+  endDate: z.string().transform(parseLocalDateToUTC),
+  label: z.string().max(100).optional().nullable(),
+}).refine(
+  (data) => data.endDate >= data.startDate,
+  { message: "End date must be on or after start date" }
+);
+
+export const updateOOOPeriodSchema = z.object({
+  startDate: z.string().transform(parseLocalDateToUTC).optional(),
+  endDate: z.string().transform(parseLocalDateToUTC).optional(),
+  label: z.string().max(100).optional().nullable(),
+});
+
+export type CreateOOOPeriodInput = z.infer<typeof createOOOPeriodSchema>;
+export type UpdateOOOPeriodInput = z.infer<typeof updateOOOPeriodSchema>;

@@ -40,6 +40,9 @@ export async function GET(request: NextRequest) {
           orderBy: { event: { date: "desc" } },
           take: 1,
         },
+        oooPeriods: {
+          orderBy: { startDate: "asc" },
+        },
       },
       orderBy: { name: "asc" },
     });
@@ -48,7 +51,7 @@ export async function GET(request: NextRequest) {
     const contactsWithDerived = contacts.map((contact) => {
       const lastEvent = contact.events[0]?.event;
       const lastEventDate = lastEvent?.date ?? null;
-      const contactStatus = calculateContactStatus(lastEventDate, contact.cadenceDays, null, contact.awayUntil);
+      const contactStatus = calculateContactStatus(lastEventDate, contact.cadenceDays, null, contact.oooPeriods);
 
       return {
         ...contact,

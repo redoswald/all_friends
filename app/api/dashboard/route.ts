@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const user = await requireUser();
 
-    // Get all contacts with their latest event
+    // Get all contacts with their latest event and OOO periods
     const contacts = await prisma.contact.findMany({
       where: { userId: user.id },
       include: {
@@ -19,6 +19,9 @@ export async function GET() {
           orderBy: { event: { date: "desc" } },
           take: 1,
         },
+        oooPeriods: {
+          orderBy: { startDate: "asc" },
+        },
       },
     });
 
@@ -26,7 +29,7 @@ export async function GET() {
     const contactsWithStatus = contacts.map((contact) => {
       const lastEvent = contact.events[0]?.event;
       const lastEventDate = lastEvent?.date ?? null;
-      const status = calculateContactStatus(lastEventDate, contact.cadenceDays, null, contact.awayUntil);
+      const status = calculateContactStatus(lastEventDate, contact.cadenceDays, null, contact.oooPeriods);
       return {
         ...contact,
         lastEventDate,

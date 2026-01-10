@@ -53,6 +53,7 @@ model Contact {
   importantDates       ImportantDate[]
   relationships        ContactRelationship[] @relation("ContactRelationships")
   relatedRelationships ContactRelationship[] @relation("RelatedRelationships")
+  oooPeriods           ContactOOOPeriod[]
 
   @@index([userId])
 }
@@ -183,4 +184,21 @@ model ContactRelationship {
   @@unique([contactId, relatedId])
   @@index([contactId])
   @@index([relatedId])
+}
+
+// Out-of-Office Periods (multiple per contact for scheduled unavailability)
+model ContactOOOPeriod {
+  id        String  @id @default(cuid())
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  startDate DateTime // Start of OOO period
+  endDate   DateTime // End of OOO period (day they return)
+  label     String?  // Optional: "Cruise", "Work trip to London", etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contactId])
+  @@index([contactId, startDate])
 }
