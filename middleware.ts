@@ -1,35 +1,39 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
 
-const SESSION_COOKIE = "prm_session";
-
-export function middleware(request: NextRequest) {
-  const sessionId = request.cookies.get(SESSION_COOKIE)?.value;
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Public routes that don't require authentication
   const isPublicRoute = pathname === "/";
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/signup");
+  const isAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/signup") ||
+    pathname.startsWith("/auth/callback");
 
   // Allow public routes without authentication
   if (isPublicRoute) {
     return NextResponse.next();
   }
 
+  // Update session and get user
+  const { user, response } = await updateSession(request);
+
   // Redirect to login if not authenticated and trying to access protected route
-  if (!sessionId && !isAuthRoute) {
+  if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
   // Redirect to dashboard if authenticated and trying to access auth routes
-  if (sessionId && isAuthRoute) {
+  if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

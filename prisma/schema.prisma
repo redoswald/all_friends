@@ -9,11 +9,13 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  supabaseId String?  @unique // Links to Supabase auth.users.id
+  email      String   @unique
+  name       String?
+  avatarUrl  String?  // Profile picture from Google OAuth
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   contacts Contact[]
   events   Event[]

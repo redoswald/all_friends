@@ -1,107 +1,156 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
-import crypto from "crypto";
 import { cache } from "react";
 
-const SESSION_COOKIE = "prm_session";
+// Helper: Sync Supabase user to Prisma User table
+async function syncUserToPrisma(supabaseUser: {
+  id: string;
+  email?: string;
+  user_metadata?: { full_name?: string; name?: string; avatar_url?: string };
+}) {
+  const email = supabaseUser.email;
+  if (!email) throw new Error("User email is required");
 
-// Simple password hashing (use bcrypt in production)
-function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex");
+  const name =
+    supabaseUser.user_metadata?.full_name ||
+    supabaseUser.user_metadata?.name ||
+    null;
+  const avatarUrl = supabaseUser.user_metadata?.avatar_url || null;
+
+  // Check if user exists by email (for migrating existing users)
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    // Update existing user with supabaseId
+    return await prisma.user.update({
+      where: { email },
+      data: {
+        supabaseId: supabaseUser.id,
+        name: name || existingUser.name,
+        avatarUrl: avatarUrl || existingUser.avatarUrl
+      },
+    });
+  } else {
+    // Create new user
+    return await prisma.user.create({
+      data: { supabaseId: supabaseUser.id, email, name, avatarUrl },
+    });
+  }
 }
 
+// Email/Password Sign Up
 export async function signUp(formData: FormData) {
+  const supabase = await createClient();
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
 
-  // Check if user exists
-  const existing = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (existing) {
-    return { error: "An account with this email already exists" };
-  }
-
-  // Create user
-  const user = await prisma.user.create({
-    data: {
-      email,
-      name,
-      // Store hashed password in name field temporarily (we'll add a proper field)
-      // For MVP, we're keeping it simple
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: name },
     },
   });
 
-  // Store password hash separately (in a real app, add passwordHash to schema)
-  // For now, we'll create a simple session
-
-  // Set session cookie
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, user.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-  });
-
-  redirect("/");
-}
-
-export async function signIn(formData: FormData) {
-  const email = formData.get("email") as string;
-  // const password = formData.get("password") as string;
-
-  // Find user by email
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (!user) {
-    return { error: "Invalid email or password" };
+  if (error) {
+    return { error: error.message };
   }
 
-  // For MVP without Supabase, we skip password verification
-  // In production, you'd verify the password hash
+  if (data.user) {
+    await syncUserToPrisma(data.user);
+  }
 
-  // Set session cookie
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, user.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-  });
-
-  redirect("/");
+  redirect("/dashboard");
 }
 
+// Email/Password Sign In
+export async function signIn(formData: FormData) {
+  const supabase = await createClient();
+
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data.user) {
+    await syncUserToPrisma(data.user);
+  }
+
+  redirect("/dashboard");
+}
+
+// OAuth Sign In (Google)
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+
+  // Use SITE_URL env var, with production fallback
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    || "https://all-friends.vercel.app";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${siteUrl}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+}
+
+// Sign Out
 export async function signOut() {
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
+  const supabase = await createClient();
+  await supabase.auth.signOut();
   redirect("/login");
 }
 
-// Cache getUser within a single request to avoid duplicate DB calls
+// Get current user (cached per request)
 export const getUser = cache(async () => {
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
+  const supabase = await createClient();
 
-  if (!sessionId) {
+  const {
+    data: { user: supabaseUser },
+  } = await supabase.auth.getUser();
+
+  if (!supabaseUser) {
     return null;
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: sessionId },
+  // Get Prisma user by supabaseId
+  let user = await prisma.user.findUnique({
+    where: { supabaseId: supabaseUser.id },
   });
+
+  // If user doesn't exist in Prisma yet (e.g., OAuth first login), create them
+  if (!user) {
+    user = await syncUserToPrisma(supabaseUser);
+  }
 
   return user;
 });
 
+// Require authenticated user (redirects if not authenticated)
 export async function requireUser() {
   const user = await getUser();
   if (!user) {
