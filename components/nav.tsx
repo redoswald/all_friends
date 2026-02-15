@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Users, Calendar, CalendarDays, LogOut, Menu } from "lucide-react";
+import { Home, Users, Calendar, CalendarDays, LogOut, Menu, Search } from "lucide-react";
 import { signOut } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,60 +59,75 @@ export function Nav() {
             </div>
           </div>
 
-          {/* Desktop sign out */}
-          <form action={signOut} className="hidden md:block">
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-coral-300 hover:bg-coral-50">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign out
+          <div className="flex items-center gap-2">
+            {/* Search trigger */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden md:flex items-center gap-2 text-gray-600 hover:text-coral-300 hover:bg-coral-50"
+              onClick={() => document.dispatchEvent(new Event("open-command-palette"))}
+            >
+              <Search className="h-4 w-4" />
+              <span className="text-xs text-muted-foreground border rounded px-1.5 py-0.5">
+                ⌘K
+              </span>
             </Button>
-          </form>
 
-          {/* Mobile hamburger menu */}
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
+            {/* Desktop sign out */}
+            <form action={signOut} className="hidden md:block">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-coral-300 hover:bg-coral-50">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
               </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-64">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-col gap-2 mt-6">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href ||
-                    pathname.startsWith(item.href + "/");
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-3 text-base rounded-md transition-colors",
-                        isActive
-                          ? "bg-coral-50 text-coral-300"
-                          : "text-gray-600 hover:text-coral-300 hover:bg-coral-50"
-                      )}
+            </form>
+
+            {/* Mobile hamburger menu */}
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-64">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-2 mt-6">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href ||
+                      pathname.startsWith(item.href + "/");
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-3 text-base rounded-md transition-colors",
+                          isActive
+                            ? "bg-coral-50 text-coral-300"
+                            : "text-gray-600 hover:text-coral-300 hover:bg-coral-50"
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                  <div className="border-t my-2" />
+                  <form action={signOut}>
+                    <button
+                      type="submit"
+                      className="flex items-center gap-3 px-3 py-3 text-base rounded-md transition-colors text-gray-600 hover:text-coral-300 hover:bg-coral-50 w-full"
                     >
-                      <Icon className="h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-                <div className="border-t my-2" />
-                <form action={signOut}>
-                  <button
-                    type="submit"
-                    className="flex items-center gap-3 px-3 py-3 text-base rounded-md transition-colors text-gray-600 hover:text-coral-300 hover:bg-coral-50 w-full"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    Sign out
-                  </button>
-                </form>
-              </div>
-            </SheetContent>
-          </Sheet>
+                      <LogOut className="h-5 w-5" />
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </nav>

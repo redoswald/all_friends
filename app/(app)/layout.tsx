@@ -1,4 +1,5 @@
 import { Nav } from "@/components/nav";
+import { CommandPalette } from "@/components/command-palette";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function AppLayout({
@@ -12,6 +13,7 @@ export default function AppLayout({
       <main className="max-w-6xl mx-auto px-4 py-6">
         {children}
       </main>
+      <CommandPalette />
       <Toaster />
     </div>
   );
