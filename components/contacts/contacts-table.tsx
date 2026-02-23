@@ -35,6 +35,8 @@ import { ContactStatus, getStatusText, CADENCE_OPTIONS } from "@/lib/cadence";
 import { FUNNEL_STAGE_LABELS } from "@/types";
 import { Contact, Tag } from "@prisma/client";
 import { FunnelStage } from "@/types";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 import { ArrowUp, ArrowDown, ArrowUpDown, Tags, X, Plus, Minus, Users, Clock } from "lucide-react";
 
 interface ContactWithDerived extends Contact {
@@ -119,11 +121,12 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
       });
 
       if (res.ok) {
+        toast.success("Tags updated");
         clearSelection();
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to update tags:", error);
+      toast.error("Failed to update tags");
     } finally {
       setIsUpdating(false);
     }
@@ -144,11 +147,12 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
       });
 
       if (res.ok) {
+        toast.success("Contacts updated");
         clearSelection();
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to update contacts:", error);
+      toast.error("Failed to update contacts");
     } finally {
       setIsUpdating(false);
     }
@@ -246,9 +250,13 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
   );
   if (contacts.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
-        No contacts found. Add your first contact to get started!
-      </div>
+      <EmptyState
+        icon={Users}
+        title="No contacts yet"
+        description="Add your first contact to start tracking your relationships."
+        actionLabel="Add Contact"
+        actionHref="/contacts"
+      />
     );
   }
 
@@ -272,16 +280,16 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
     <div className="space-y-2">
       {/* Bulk Action Bar */}
       {selectedIds.size > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-blue-900">
+            <span className="text-sm font-medium text-teal-500">
               {selectedIds.size} contact{selectedIds.size > 1 ? "s" : ""} selected
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={clearSelection}
-              className="h-6 px-2 text-blue-700 hover:text-blue-900 hover:bg-blue-100"
+              className="h-6 px-2 text-teal-500 hover:text-teal-500 hover:bg-teal-100"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -437,7 +445,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
             </Popover>
 
             {isUpdating && (
-              <span className="text-sm text-blue-700">Updating...</span>
+              <span className="text-sm text-teal-500">Updating...</span>
             )}
           </div>
         </div>
@@ -448,7 +456,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
         {sortedContacts.map((contact) => (
           <div
             key={contact.id}
-            className={`border rounded-lg p-3 ${selectedIds.has(contact.id) ? "bg-blue-50 border-blue-200" : "bg-white"}`}
+            className={`border rounded-lg p-3 ${selectedIds.has(contact.id) ? "bg-teal-50 border-teal-200" : "bg-white"}`}
           >
             <div className="flex items-start gap-3">
               <Checkbox
@@ -475,7 +483,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                         }
                         className={`flex-shrink-0 ${
                           contact.status.hasUpcomingEvent
-                            ? "border-blue-400 text-blue-600 bg-transparent"
+                            ? "border-teal-400 text-teal-500 bg-transparent"
                             : contact.status.isDue
                               ? "bg-amber-500 hover:bg-amber-500"
                               : contact.status.isDueSoon
@@ -552,7 +560,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
             {sortedContacts.map((contact) => (
               <TableRow
                 key={contact.id}
-                className={`cursor-pointer hover:bg-gray-50 ${selectedIds.has(contact.id) ? "bg-blue-50" : ""}`}
+                className={`cursor-pointer hover:bg-gray-50 ${selectedIds.has(contact.id) ? "bg-teal-50" : ""}`}
               >
                 <TableCell>
                   <Checkbox
@@ -564,7 +572,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                 <TableCell>
                   <Link
                     href={`/contacts/${contact.id}`}
-                    className="block font-medium hover:text-blue-600"
+                    className="block font-medium hover:text-accent-400"
                   >
                     {contact.name}
                     {contact.nickname && (

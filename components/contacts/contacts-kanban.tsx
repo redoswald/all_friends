@@ -163,7 +163,7 @@ export function ContactsKanban({ contacts }: ContactsKanbanProps) {
                         className={cn(
                           "text-[10px] px-1.5 py-0 flex-shrink-0",
                           contact.status.hasUpcomingEvent
-                            ? "border-blue-400 text-blue-600 bg-transparent"
+                            ? "border-teal-400 text-teal-500 bg-transparent"
                             : contact.status.isDue
                               ? "bg-amber-500 hover:bg-amber-500"
                               : contact.status.isDueSoon

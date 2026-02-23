@@ -27,7 +27,7 @@ const features = [
     title: "Event Logging",
     description:
       "Log hangouts, calls, and messages to track when you last connected.",
-    color: "coral" as const,
+    color: "accent" as const,
   },
   {
     icon: Bell,
@@ -41,7 +41,7 @@ const features = [
     title: "OOO Scheduling",
     description:
       "Mark contacts as away and their due dates automatically adjust.",
-    color: "coral" as const,
+    color: "accent" as const,
   },
   {
     icon: Tags,
@@ -55,7 +55,7 @@ const features = [
     title: "Relationship Stages",
     description:
       "Track relationship progression from acquaintance to close friend.",
-    color: "coral" as const,
+    color: "accent" as const,
   },
 ];
 
@@ -95,7 +95,7 @@ export default async function LandingPage() {
                       <Button
                         variant="outline"
                         size="lg"
-                        className="w-full sm:w-auto px-8 py-6 text-base rounded-xl border-2 border-gray-200 hover:border-coral-300 hover:bg-coral-50 hover:text-coral-400 transition-all"
+                        className="w-full sm:w-auto px-8 py-6 text-base rounded-xl border-2 border-gray-200 hover:border-accent-300 hover:bg-accent-50 hover:text-accent-400 transition-all"
                       >
                         Sign In
                       </Button>
@@ -136,9 +136,9 @@ export default async function LandingPage() {
                   <div className="flex items-start gap-4">
                     <div
                       className={`p-3 rounded-xl ${
-                        feature.color === "teal"
-                          ? "bg-teal-50 text-teal-300"
-                          : "bg-coral-50 text-coral-300"
+                        feature.color === "accent"
+                          ? "bg-accent-50 text-accent-300"
+                          : "bg-teal-50 text-teal-300"
                       }`}
                     >
                       <feature.icon className="h-6 w-6" />
@@ -161,7 +161,7 @@ export default async function LandingPage() {
 
       {/* Footer CTA */}
       <section className="px-4 py-16">
-        <div className="max-w-2xl mx-auto text-center bg-gradient-to-r from-coral-300 to-teal-300 rounded-3xl p-10 shadow-lg">
+        <div className="max-w-2xl mx-auto text-center bg-gradient-to-r from-accent-300 to-teal-300 rounded-3xl p-10 shadow-lg">
           <h2 className="text-2xl font-semibold text-white">
             Ready to be a better friend?
           </h2>

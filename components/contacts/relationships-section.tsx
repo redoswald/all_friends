@@ -41,6 +41,8 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   type ContactRelationship,
   type RelationshipType,
@@ -74,6 +76,7 @@ export function RelationshipsSection({
   const [isOpen, setIsOpen] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Form state
   const [selectedContactId, setSelectedContactId] = useState("");
@@ -114,6 +117,7 @@ export function RelationshipsSection({
       });
 
       if (res.ok) {
+        toast.success("Relationship added");
         resetForm();
         router.refresh();
       }
@@ -122,19 +126,21 @@ export function RelationshipsSection({
     }
   };
 
-  const handleDelete = async (relationshipId: string) => {
-    if (!confirm("Remove this relationship?")) return;
+  const handleDelete = async () => {
+    if (!deletingId) return;
 
     try {
       const res = await fetch(
-        `/api/contacts/${contactId}/relationships/${relationshipId}`,
+        `/api/contacts/${contactId}/relationships/${deletingId}`,
         { method: "DELETE" }
       );
       if (res.ok) {
+        toast.success("Relationship removed");
+        setDeletingId(null);
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to delete relationship:", error);
+      toast.error("Failed to remove relationship");
     }
   };
 
@@ -209,7 +215,7 @@ export function RelationshipsSection({
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-destructive"
-                      onClick={() => handleDelete(rel.id)}
+                      onClick={() => setDeletingId(rel.id)}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -312,6 +318,15 @@ export function RelationshipsSection({
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <ConfirmDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        title="Remove relationship"
+        description="Are you sure you want to remove this relationship? This action cannot be undone."
+        confirmLabel="Remove"
+        onConfirm={handleDelete}
+      />
     </Card>
   );
 }

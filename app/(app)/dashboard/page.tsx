@@ -112,7 +112,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+      <h1 className="text-[2rem] font-semibold leading-tight">Dashboard</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -142,12 +142,12 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-coral-50 rounded-full">
-                <AlertCircle className="h-4 w-4 text-coral-300" />
+              <div className="p-2 bg-accent-50 rounded-full">
+                <AlertCircle className="h-4 w-4 text-accent-300" />
               </div>
               <span className="text-sm text-gray-500">Overdue</span>
             </div>
-            <p className="text-2xl font-semibold mt-2 text-coral-400">{stats.overdueContacts}</p>
+            <p className="text-2xl font-semibold mt-2 text-accent-400">{stats.overdueContacts}</p>
           </CardContent>
         </Card>
 
@@ -204,12 +204,12 @@ export default async function DashboardPage() {
                 <Link
                   key={contact.id}
                   href={`/contacts/${contact.id}`}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-coral-50 transition-colors border"
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-accent-50 transition-colors border"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-teal-300" />
                     <div>
-                      <p className="font-medium hover:text-coral-400">{contact.name}</p>
+                      <p className="font-medium hover:text-accent-400">{contact.name}</p>
                       <p className="text-sm text-gray-500">
                         Added {new Date(contact.createdAt).toLocaleDateString("en-US", {
                           month: "short",

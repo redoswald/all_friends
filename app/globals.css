@@ -9,20 +9,46 @@
   --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* All Friends Brand Colors */
-  --color-coral-50: #FFE5E5;
-  --color-coral-100: #FFCCCC;
-  --color-coral-200: #FF9999;
-  --color-coral-300: #FF6B6B;
-  --color-coral-400: #E85555;
-  --color-coral-500: #D14545;
+  /* aaronOS Accent Colors (All Friends = Coral) */
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-200: var(--accent-200);
+  --color-accent-300: var(--accent-300);
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
 
+  /* Shared Teal */
   --color-teal-50: #E0F7F5;
   --color-teal-100: #B3EBE6;
   --color-teal-200: #80DED5;
   --color-teal-300: #4ECDC4;
   --color-teal-400: #3DB9B1;
   --color-teal-500: #2CA59D;
+
+  /* aaronOS Warm Neutrals */
+  --color-gray-50: var(--ds-gray-50);
+  --color-gray-100: var(--ds-gray-100);
+  --color-gray-200: var(--ds-gray-200);
+  --color-gray-300: var(--ds-gray-300);
+  --color-gray-500: var(--ds-gray-500);
+  --color-gray-700: var(--ds-gray-700);
+  --color-gray-900: var(--ds-gray-900);
+  --color-gray-950: var(--ds-gray-950);
+
+  /* Semantic Colors */
+  --color-success: var(--color-success-val);
+  --color-warning: var(--color-warning-val);
+  --color-error: var(--color-error-val);
+  --color-info: var(--color-info-val);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --shadow-accent: 0 4px 12px var(--accent-shadow);
+
+  /* shadcn mappings */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -59,6 +85,33 @@
 }
 
 :root {
+  /* aaronOS Accent (All Friends = Coral) */
+  --accent-50: #FFE5E5;
+  --accent-100: #FFCCCC;
+  --accent-200: #FF9999;
+  --accent-300: #FF6B6B;
+  --accent-400: #E85555;
+  --accent-500: #D14545;
+  --accent-shadow: rgba(255, 107, 107, 0.3);
+
+  /* aaronOS Warm Neutrals */
+  --ds-gray-50: #FAFAFE;
+  --ds-gray-100: #F5F5F7;
+  --ds-gray-200: #E5E5EA;
+  --ds-gray-300: #C5C5D0;
+  --ds-gray-500: #7A7A8A;
+  --ds-gray-700: #4A4A5A;
+  --ds-gray-900: #1A1A2E;
+  --ds-gray-950: #111118;
+  --ds-white: #FFFFFF;
+
+  /* Semantic Colors */
+  --color-success-val: #4ECDC4;
+  --color-warning-val: #FFB86C;
+  --color-error-val: #EF4444;
+  --color-info-val: #4ECDC4;
+
+  /* shadcn base tokens */
   --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.205 0.02 280);
@@ -74,10 +127,10 @@
   --muted-foreground: oklch(0.55 0.01 280);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0.02 280);
-  --destructive: oklch(0.65 0.2 15);
+  --destructive: #EF4444;
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.65 0.2 15);
+  --ring: #FF6B6B;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -133,5 +186,20 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* aaronOS focus ring — double-ring accent style */
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-50), 0 0 0 5px var(--accent-300);
+  }
+
+  /* Primary button hover lift */
+  [data-slot="button"][data-variant="default"]:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-accent);
+  }
+  [data-slot="button"][data-variant="default"]:not(:disabled):active {
+    transform: translateY(0);
   }
 }

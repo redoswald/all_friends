@@ -10,6 +10,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Users, PartyPopper } from "lucide-react";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 import { getStatusText, ContactStatus } from "@/lib/cadence";
 import { FUNNEL_STAGE_LABELS, FunnelStage } from "@/types";
 import { Tag } from "@prisma/client";
@@ -49,10 +52,11 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
       });
 
       if (res.ok) {
+        toast.success("Contact snoozed");
         setOpenPopover(null);
         window.location.reload();
       } else {
-        console.error("Snooze failed");
+        toast.error("Failed to snooze contact");
       }
     } catch (error) {
       console.error("Failed to snooze:", error);
@@ -62,12 +66,23 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
   };
 
   if (contacts.length === 0) {
+    if (totalContacts === 0) {
+      return (
+        <EmptyState
+          icon={Users}
+          title="No contacts yet"
+          description="Add your first contact to get started!"
+          actionLabel="Add Contact"
+          actionHref="/contacts"
+        />
+      );
+    }
     return (
-      <p className="text-gray-500 text-sm">
-        {totalContacts === 0
-          ? "Add your first contact to get started!"
-          : "You're all caught up! No contacts need attention right now."}
-      </p>
+      <EmptyState
+        icon={PartyPopper}
+        title="You're all caught up!"
+        description="No contacts need attention right now."
+      />
     );
   }
 
@@ -76,7 +91,7 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
       {contacts.map((contact) => (
         <div
           key={contact.id}
-          className="flex items-center justify-between p-3 rounded-lg hover:bg-coral-50 transition-colors border gap-2"
+          className="flex items-center justify-between p-3 rounded-lg hover:bg-accent-50 transition-colors border gap-2"
         >
           <Link
             href={`/contacts/${contact.id}`}
@@ -84,11 +99,11 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
           >
             <div
               className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                contact.status.isOverdue ? "bg-coral-300" : "bg-amber-500"
+                contact.status.isOverdue ? "bg-accent-300" : "bg-amber-500"
               }`}
             />
             <div className="min-w-0">
-              <p className="font-medium truncate group-hover:text-coral-400">{contact.name}</p>
+              <p className="font-medium truncate group-hover:text-accent-400">{contact.name}</p>
               <p className="text-sm text-gray-500 truncate">
                 {FUNNEL_STAGE_LABELS[contact.funnelStage as FunnelStage]}
                 {contact.lastEventDate && (
@@ -127,7 +142,7 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
                     variant="default"
                     className={
                       contact.status.isOverdue
-                        ? "bg-coral-300 hover:bg-coral-400 cursor-pointer whitespace-nowrap"
+                        ? "bg-accent-300 hover:bg-accent-400 cursor-pointer whitespace-nowrap"
                         : "bg-amber-500 hover:bg-amber-600 cursor-pointer whitespace-nowrap"
                     }
                   >
@@ -143,7 +158,7 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
                       key={option.days}
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-start hover:text-coral-400 hover:bg-coral-50"
+                      className="w-full justify-start hover:text-accent-400 hover:bg-accent-50"
                       onClick={() => handleSnooze(contact.id, option.days)}
                       disabled={snoozing === contact.id}
                     >

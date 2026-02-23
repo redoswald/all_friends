@@ -29,6 +29,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   type ImportantDate,
   type ImportantDateType,
@@ -84,6 +86,7 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Form state
   const [dateType, setDateType] = useState<ImportantDateType>("BIRTHDAY");
@@ -126,6 +129,7 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
       });
 
       if (res.ok) {
+        toast.success(editingId ? "Date updated" : "Date added");
         resetForm();
         router.refresh();
       }
@@ -134,18 +138,20 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
     }
   };
 
-  const handleDelete = async (dateId: string) => {
-    if (!confirm("Delete this date?")) return;
+  const handleDelete = async () => {
+    if (!deletingId) return;
 
     try {
-      const res = await fetch(`/api/contacts/${contactId}/dates/${dateId}`, {
+      const res = await fetch(`/api/contacts/${contactId}/dates/${deletingId}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("Date deleted");
+        setDeletingId(null);
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to delete date:", error);
+      toast.error("Failed to delete date");
     }
   };
 
@@ -334,7 +340,7 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-destructive"
-                      onClick={() => handleDelete(date.id)}
+                      onClick={() => setDeletingId(date.id)}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -429,6 +435,14 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <ConfirmDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        title="Delete date"
+        description="Are you sure you want to delete this date? This action cannot be undone."
+        onConfirm={handleDelete}
+      />
     </Card>
   );
 }

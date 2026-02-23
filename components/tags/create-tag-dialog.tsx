@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 const TAG_COLORS = [
   "#ef4444", // red
@@ -59,6 +60,7 @@ export function CreateTagDialog({ onSuccess, trigger }: CreateTagDialogProps) {
         throw new Error(result.error || "Failed to create tag");
       }
 
+      toast.success("Tag created");
       setOpen(false);
       setSelectedColor(null);
       onSuccess();
@@ -115,7 +117,7 @@ export function CreateTagDialog({ onSuccess, trigger }: CreateTagDialogProps) {
             </div>
           </div>
 
-          {error && <p className="text-sm text-coral-400">{error}</p>}
+          {error && <p className="text-sm text-error">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Creating..." : "Create Tag"}

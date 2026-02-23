@@ -23,7 +23,7 @@ export function EventsHeader({ contacts }: EventsHeaderProps) {
 
   return (
     <div className="flex items-center justify-between">
-      <h1 className="text-2xl font-semibold">Events</h1>
+      <h1 className="text-[2rem] font-semibold leading-tight">Events</h1>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
           <Button>

@@ -65,7 +65,7 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent>
           {error && (
-            <p className="text-sm text-coral-400 mb-4">{error}</p>
+            <p className="text-sm text-error mb-4">{error}</p>
           )}
 
           <Button
@@ -127,7 +127,7 @@ export default function SignUpPage() {
           </form>
           <p className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{" "}
-            <Link href="/login" className="text-coral-300 hover:text-coral-400 hover:underline">
+            <Link href="/login" className="text-accent-300 hover:text-accent-400 hover:underline">
               Sign in
             </Link>
           </p>

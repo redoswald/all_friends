@@ -4,7 +4,7 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-coral-50 via-white to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-accent-50 via-white to-teal-50">
       {children}
     </div>
   );

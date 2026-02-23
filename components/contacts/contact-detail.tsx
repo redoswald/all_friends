@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, MoreHorizontal, Pencil, Trash2, Plus, Calendar, Plane } from "lucide-react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ContactStatus, getStatusText, CADENCE_OPTIONS, getAnnualFrequencyText } from "@/lib/cadence";
 import { FUNNEL_STAGE_LABELS, EVENT_TYPE_LABELS } from "@/types";
 import { Contact, Tag, Event, ContactField, ImportantDate, ContactRelationship, ContactOOOPeriod } from "@prisma/client";
@@ -77,35 +79,39 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
   const [awayDialogOpen, setAwayDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDeleteContact, setConfirmDeleteContact] = useState(false);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this contact?")) return;
-
     setDeleting(true);
     try {
       const res = await fetch(`/api/contacts/${contact.id}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("Contact deleted");
         router.push("/contacts");
       }
     } finally {
       setDeleting(false);
+      setConfirmDeleteContact(false);
     }
   };
 
-  const handleDeleteEvent = async (eventId: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+  const handleDeleteEvent = async () => {
+    if (!deletingEventId) return;
 
     try {
-      const res = await fetch(`/api/events/${eventId}`, {
+      const res = await fetch(`/api/events/${deletingEventId}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("Event deleted");
+        setDeletingEventId(null);
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to delete event:", error);
+      toast.error("Failed to delete event");
     }
   };
 
@@ -125,7 +131,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
             </Button>
           </Link>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-semibold truncate">{contact.name}</h1>
+            <h1 className="text-xl sm:text-[2rem] font-semibold leading-tight truncate">{contact.name}</h1>
             {contact.nickname && (
               <p className="text-gray-500 text-sm truncate">({contact.nickname})</p>
             )}
@@ -169,8 +175,8 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                 {contact.status.isAway ? "Update Away" : "Set Away"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-coral-400"
-                onSelect={handleDelete}
+                className="text-error"
+                onSelect={() => setConfirmDeleteContact(true)}
                 disabled={deleting}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -295,7 +301,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                   ) : contact.status.hasUpcomingEvent ? (
                     <Badge
                       variant="outline"
-                      className="border-blue-500 text-blue-600"
+                      className="border-teal-400 text-teal-500"
                     >
                       {getStatusText(contact.status)}
                     </Badge>
@@ -431,8 +437,8 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            className="text-coral-400"
-                            onSelect={() => handleDeleteEvent(event.id)}
+                            className="text-error"
+                            onSelect={() => setDeletingEventId(event.id)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
@@ -470,6 +476,23 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
           </Card>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDeleteContact}
+        onOpenChange={setConfirmDeleteContact}
+        title="Delete contact"
+        description={<>Are you sure you want to delete <strong>{contact.name}</strong>? All their events, fields, and relationships will also be deleted. This action cannot be undone.</>}
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
+
+      <ConfirmDialog
+        open={!!deletingEventId}
+        onOpenChange={(open) => !open && setDeletingEventId(null)}
+        title="Delete event"
+        description="Are you sure you want to delete this event? This action cannot be undone."
+        onConfirm={handleDeleteEvent}
+      />
     </div>
   );
 }

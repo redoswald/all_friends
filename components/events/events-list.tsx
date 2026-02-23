@@ -19,6 +19,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Calendar, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { EmptyState } from "@/components/empty-state";
 import { EVENT_TYPE_LABELS } from "@/types";
 import { Event, Contact } from "@prisma/client";
 import { EventType } from "@/types";
@@ -37,27 +40,32 @@ interface EventsListProps {
 export function EventsList({ events, contacts }: EventsListProps) {
   const router = useRouter();
   const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
   if (events.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
-        No events logged yet. Log your first event to start tracking!
-      </div>
+      <EmptyState
+        icon={Calendar}
+        title="No events yet"
+        description="Log your first event to start tracking your interactions."
+      />
     );
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+  const handleDelete = async () => {
+    if (!deletingEventId) return;
 
     try {
-      const res = await fetch(`/api/events/${id}`, {
+      const res = await fetch(`/api/events/${deletingEventId}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("Event deleted");
+        setDeletingEventId(null);
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to delete event:", error);
+      toast.error("Failed to delete event");
     }
   };
 
@@ -134,8 +142,8 @@ export function EventsList({ events, contacts }: EventsListProps) {
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="text-coral-400"
-                          onSelect={() => handleDelete(event.id)}
+                          className="text-error"
+                          onSelect={() => setDeletingEventId(event.id)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
@@ -167,6 +175,14 @@ export function EventsList({ events, contacts }: EventsListProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!deletingEventId}
+        onOpenChange={(open) => !open && setDeletingEventId(null)}
+        title="Delete event"
+        description="Are you sure you want to delete this event? This action cannot be undone."
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

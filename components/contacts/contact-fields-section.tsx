@@ -30,6 +30,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   type ContactField,
   type ContactFieldType,
@@ -84,6 +86,7 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Form state
   const [fieldType, setFieldType] = useState<ContactFieldType>("EMAIL");
@@ -131,6 +134,7 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
       });
 
       if (res.ok) {
+        toast.success(editingId ? "Contact info updated" : "Contact info added");
         resetForm();
         router.refresh();
       }
@@ -139,18 +143,20 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
     }
   };
 
-  const handleDelete = async (fieldId: string) => {
-    if (!confirm("Delete this contact field?")) return;
+  const handleDelete = async () => {
+    if (!deletingId) return;
 
     try {
-      const res = await fetch(`/api/contacts/${contactId}/fields/${fieldId}`, {
+      const res = await fetch(`/api/contacts/${contactId}/fields/${deletingId}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("Contact info deleted");
+        setDeletingId(null);
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to delete field:", error);
+      toast.error("Failed to delete field");
     }
   };
 
@@ -336,7 +342,7 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-destructive"
-                      onClick={() => handleDelete(field.id)}
+                      onClick={() => setDeletingId(field.id)}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -427,6 +433,14 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <ConfirmDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        title="Delete contact info"
+        description="Are you sure you want to delete this contact field? This action cannot be undone."
+        onConfirm={handleDelete}
+      />
     </Card>
   );
 }

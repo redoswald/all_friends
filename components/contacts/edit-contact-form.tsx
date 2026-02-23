@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,6 +88,7 @@ export function EditContactForm({ contact, tags, onSuccess }: EditContactFormPro
         throw new Error(result.error || "Failed to update contact");
       }
 
+      toast.success("Contact updated");
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -233,7 +235,7 @@ export function EditContactForm({ contact, tags, onSuccess }: EditContactFormPro
         />
       </div>
 
-      {error && <p className="text-sm text-coral-400">{error}</p>}
+      {error && <p className="text-sm text-error">{error}</p>}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}

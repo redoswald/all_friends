@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
+import { toast } from "sonner";
 import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { Event } from "@prisma/client";
 import { formatDateForInput } from "@/lib/date-utils";
@@ -91,6 +92,7 @@ export function EditEventForm({
         throw new Error(result.error || "Failed to update event");
       }
 
+      toast.success("Event updated");
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -165,7 +167,7 @@ export function EditEventForm({
             {showCreateOption && (
               <button
                 type="button"
-                className="w-full text-left px-3 py-2 text-sm hover:bg-coral-50 flex items-center gap-2 text-coral-400 border-b"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-accent-50 flex items-center gap-2 text-accent-400 border-b"
                 onClick={() => addNewContact(searchTerm)}
               >
                 <Plus className="h-4 w-4" />
@@ -239,7 +241,7 @@ export function EditEventForm({
         />
       </div>
 
-      {error && <p className="text-sm text-coral-400">{error}</p>}
+      {error && <p className="text-sm text-error">{error}</p>}
 
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Saving..." : "Save Changes"}

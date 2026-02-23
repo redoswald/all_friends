@@ -141,7 +141,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Calendar</h1>
+      <h1 className="text-[2rem] font-semibold leading-tight">Calendar</h1>
       <CalendarView
         events={events}
         contactDueDates={contactDueDates}

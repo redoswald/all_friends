@@ -67,7 +67,7 @@ function LoginForm() {
       </CardHeader>
       <CardContent>
         {(error || callbackError) && (
-          <p className="text-sm text-coral-400 mb-4">
+          <p className="text-sm text-error mb-4">
             {error || "Authentication failed. Please try again."}
           </p>
         )}
@@ -120,7 +120,7 @@ function LoginForm() {
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-coral-300 hover:text-coral-400 hover:underline">
+          <Link href="/signup" className="text-accent-300 hover:text-accent-400 hover:underline">
             Sign up
           </Link>
         </p>

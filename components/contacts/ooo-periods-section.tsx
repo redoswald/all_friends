@@ -27,6 +27,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { ContactOOOPeriod } from "@prisma/client";
 
 interface OOOPeriodsSectionProps {
@@ -70,6 +72,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Form state
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -106,6 +109,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
       });
 
       if (res.ok) {
+        toast.success(editingId ? "OOO period updated" : "OOO period added");
         resetForm();
         router.refresh();
       }
@@ -114,18 +118,20 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
     }
   };
 
-  const handleDelete = async (periodId: string) => {
-    if (!confirm("Delete this OOO period?")) return;
+  const handleDelete = async () => {
+    if (!deletingId) return;
 
     try {
-      const res = await fetch(`/api/contacts/${contactId}/ooo-periods/${periodId}`, {
+      const res = await fetch(`/api/contacts/${contactId}/ooo-periods/${deletingId}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("OOO period deleted");
+        setDeletingId(null);
         router.refresh();
       }
     } catch (error) {
-      console.error("Failed to delete OOO period:", error);
+      toast.error("Failed to delete OOO period");
     }
   };
 
@@ -345,7 +351,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-destructive"
-                      onClick={() => handleDelete(period.id)}
+                      onClick={() => setDeletingId(period.id)}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -358,6 +364,14 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+
+      <ConfirmDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+        title="Delete OOO period"
+        description="Are you sure you want to delete this OOO period? This action cannot be undone."
+        onConfirm={handleDelete}
+      />
     </Card>
   );
 }
