@@ -84,7 +84,7 @@ export default function SignUpPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+              <span className="bg-card px-2 text-gray-500">Or continue with email</span>
             </div>
           </div>
 
@@ -125,7 +125,7 @@ export default function SignUpPage() {
               {loading ? "Creating account..." : "Create account"}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-center text-sm text-gray-700">
             Already have an account?{" "}
             <Link href="/login" className="text-accent-300 hover:text-accent-400 hover:underline">
               Sign in

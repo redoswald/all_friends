@@ -230,7 +230,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
 
   const SortIcon = ({ column }: { column: SortColumn }) => {
     if (sortColumn !== column) {
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-gray-400" />;
+      return <ArrowUpDown className="ml-1 h-3 w-3 text-gray-300" />;
     }
     return sortDirection === "asc"
       ? <ArrowUp className="ml-1 h-3 w-3" />
@@ -456,7 +456,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
         {sortedContacts.map((contact) => (
           <div
             key={contact.id}
-            className={`border rounded-lg p-3 ${selectedIds.has(contact.id) ? "bg-teal-50 border-teal-200" : "bg-white"}`}
+            className={`border rounded-lg p-3 ${selectedIds.has(contact.id) ? "bg-teal-50 border-teal-200" : "bg-[var(--ds-white)]"}`}
           >
             <div className="flex items-start gap-3">
               <Checkbox
@@ -520,7 +520,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                         </Badge>
                       ))}
                       {contact.tags.length > 3 && (
-                        <span className="text-xs text-gray-400">+{contact.tags.length - 3}</span>
+                        <span className="text-xs text-gray-300">+{contact.tags.length - 3}</span>
                       )}
                     </div>
                   )}
@@ -600,13 +600,13 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                   ))}
                 </div>
               </TableCell>
-              <TableCell className="text-sm text-gray-600">
+              <TableCell className="text-sm text-gray-700">
                 {FUNNEL_STAGE_LABELS[contact.funnelStage as FunnelStage]}
               </TableCell>
-              <TableCell className="text-sm text-gray-600">
+              <TableCell className="text-sm text-gray-700">
                 {getCadenceLabel(contact.cadenceDays)}
               </TableCell>
-              <TableCell className="text-sm text-gray-600">
+              <TableCell className="text-sm text-gray-700">
                 {formatLastSeen(contact.lastEventDate, contact.status.daysSinceLastEvent)}
               </TableCell>
               <TableCell className="text-right">
@@ -634,7 +634,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                     {getStatusText(contact.status)}
                   </Badge>
                 ) : (
-                  <span className="text-sm text-gray-400">—</span>
+                  <span className="text-sm text-gray-300">—</span>
                 )}
               </TableCell>
               </TableRow>

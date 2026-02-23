@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const updateProfileSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+});
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
 export const createContactSchema = z.object({
   name: z.string().min(1, "Name is required"),
   nickname: z.string().optional().nullable(),

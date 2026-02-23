@@ -29,7 +29,7 @@ export default function ContactsLoading() {
 
       <div className="md:hidden space-y-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="border rounded-lg p-3 bg-white">
+          <div key={i} className="border rounded-lg p-3 bg-[var(--ds-white)]">
             <div className="flex items-start gap-3">
               <Skeleton className="h-4 w-4 mt-1" />
               <div className="flex-1 space-y-2">

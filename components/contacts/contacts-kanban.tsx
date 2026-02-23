@@ -196,7 +196,7 @@ export function ContactsKanban({ contacts }: ContactsKanbanProps) {
                         </Badge>
                       ))}
                       {contact.tags.length > 2 && (
-                        <span className="text-[10px] text-gray-400">
+                        <span className="text-[10px] text-gray-300">
                           +{contact.tags.length - 2}
                         </span>
                       )}
@@ -204,7 +204,7 @@ export function ContactsKanban({ contacts }: ContactsKanbanProps) {
                   )}
 
                   {/* Last seen */}
-                  <p className="text-[10px] text-gray-400 mt-2">
+                  <p className="text-[10px] text-gray-300 mt-2">
                     {formatLastSeen(contact.lastEventDate, contact.status.daysSinceLastEvent)}
                   </p>
                 </Link>
@@ -212,7 +212,7 @@ export function ContactsKanban({ contacts }: ContactsKanbanProps) {
             ))}
 
             {contactsByStage[stage].length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">
+              <div className="text-center py-8 text-gray-300 text-sm">
                 No contacts
               </div>
             )}

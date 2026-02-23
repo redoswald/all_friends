@@ -169,7 +169,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       <aside
         ref={sidebarRef}
         style={{ width: `${width}px`, transition: isDragging ? "none" : "width 200ms ease" }}
-        className="hidden md:flex h-screen flex-col border-r border-[var(--ds-gray-200)] bg-white sticky top-0 shrink-0"
+        className="hidden md:flex h-screen flex-col border-r border-[var(--ds-gray-200)] bg-[var(--ds-white)] sticky top-0 shrink-0"
       >
         {sidebarContent}
 
@@ -185,7 +185,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       <div className="md:hidden fixed top-3 left-3 z-40">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="bg-white shadow-sm border border-[var(--ds-gray-200)]">
+            <Button variant="ghost" size="icon" className="bg-[var(--ds-white)] shadow-sm border border-[var(--ds-gray-200)]">
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>

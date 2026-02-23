@@ -291,7 +291,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                   ) : contact.snoozedUntil && new Date(contact.snoozedUntil) > new Date() ? (
                     <Badge
                       variant="outline"
-                      className="border-gray-400 text-gray-600 bg-gray-50"
+                      className="border-gray-400 text-gray-700 bg-gray-50"
                     >
                       Snoozed until {new Date(contact.snoozedUntil).toLocaleDateString("en-US", {
                         month: "short",
@@ -319,7 +319,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                       {getStatusText(contact.status)}
                     </Badge>
                   ) : (
-                    <span className="text-gray-400">No cadence set</span>
+                    <span className="text-gray-300">No cadence set</span>
                   )}
                 </div>
               </div>
@@ -398,7 +398,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                       className="flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0"
                     >
                       <div className="p-2 bg-gray-100 rounded-full">
-                        <Calendar className="h-4 w-4 text-gray-600" />
+                        <Calendar className="h-4 w-4 text-gray-700" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -422,7 +422,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                           </p>
                         )}
                         {event.notes && (
-                          <p className="text-sm mt-1 text-gray-600">{event.notes}</p>
+                          <p className="text-sm mt-1 text-gray-700">{event.notes}</p>
                         )}
                       </div>
                       <DropdownMenu>

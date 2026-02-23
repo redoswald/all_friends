@@ -9,7 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
+import Link from "next/link";
 
 interface AccountMenuProps {
   user: {
@@ -52,6 +53,13 @@ export function AccountMenu({ user }: AccountMenuProps) {
           <p className="text-sm font-medium">{user.name || "User"}</p>
           <p className="text-xs text-muted-foreground">{user.email}</p>
         </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/settings">
+            <Settings className="size-4" />
+            Settings
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => signOut()}

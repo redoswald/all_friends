@@ -88,7 +88,7 @@ function LoginForm() {
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+            <span className="bg-card px-2 text-gray-500">Or continue with email</span>
           </div>
         </div>
 
@@ -118,7 +118,7 @@ function LoginForm() {
             {loading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-gray-700">
           Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-accent-300 hover:text-accent-400 hover:underline">
             Sign up

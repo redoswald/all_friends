@@ -147,6 +147,21 @@
 }
 
 .dark {
+  /* aaronOS warm neutral dark overrides */
+  --ds-gray-50: #161622;
+  --ds-gray-100: #1E1E2E;
+  --ds-gray-200: #2A2A3A;
+  --ds-gray-300: #4A4A5A;
+  --ds-gray-500: #8A8A9A;
+  --ds-gray-700: #B0B0BC;
+  --ds-gray-900: #EDEDF0;
+  --ds-gray-950: #F5F5F7;
+  --ds-white: #1A1A2E;
+
+  /* Soften accent backgrounds in dark mode */
+  --accent-50: rgba(255, 107, 107, 0.12);
+  --accent-shadow: rgba(255, 107, 107, 0.2);
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

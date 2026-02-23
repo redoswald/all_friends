@@ -141,7 +141,7 @@ export function VacationModeDialog() {
           </div>
 
           {result && (
-            <div className={`p-3 rounded-lg text-sm ${result.count > 0 ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-600"}`}>
+            <div className={`p-3 rounded-lg text-sm ${result.count > 0 ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-700"}`}>
               {result.count > 0
                 ? `Snoozed ${result.count} contact${result.count !== 1 ? "s" : ""}!`
                 : "No contacts have due dates in this range."}

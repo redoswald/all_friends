@@ -257,14 +257,14 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                       <div
                         className={cn(
                           "text-xs sm:text-sm font-medium w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full",
-                          !isCurrentMonth && "text-gray-400",
+                          !isCurrentMonth && "text-gray-300",
                           isToday && "bg-blue-600 text-white"
                         )}
                       >
                         {date.getDate()}
                       </div>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
-                        <Plus className="h-4 w-4 text-gray-400" />
+                        <Plus className="h-4 w-4 text-gray-300" />
                       </div>
                     </div>
 
@@ -279,7 +279,7 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                               className={cn(
                                 "w-1.5 h-1.5 rounded-full",
                                 contact.isSnoozedDueDate
-                                  ? "bg-gray-400"
+                                  ? "bg-gray-300"
                                   : contact.isFutureDueDate
                                     ? "bg-violet-400"
                                     : "bg-amber-500"
@@ -287,7 +287,7 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                             />
                           ))}
                           {dayDueDates.length > 3 && (
-                            <span className="text-[8px] text-gray-400">+{dayDueDates.length - 3}</span>
+                            <span className="text-[8px] text-gray-300">+{dayDueDates.length - 3}</span>
                           )}
                         </div>
                         {/* Desktop: show full items */}
@@ -331,12 +331,12 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                               key={event.id}
                               className={cn(
                                 "w-1.5 h-1.5 rounded-full",
-                                isPast ? "bg-gray-400" : "bg-blue-500"
+                                isPast ? "bg-gray-300" : "bg-blue-500"
                               )}
                             />
                           ))}
                           {dayEvents.length > 3 && (
-                            <span className="text-[8px] text-gray-400">+{dayEvents.length - 3}</span>
+                            <span className="text-[8px] text-gray-300">+{dayEvents.length - 3}</span>
                           )}
                         </div>
                         {/* Desktop: show full items */}
@@ -404,7 +404,7 @@ function EventItem({ event, isPast }: EventItemProps) {
         <div
           className={cn(
             "text-xs p-1 rounded cursor-pointer truncate",
-            isPast ? "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-800"
+            isPast ? "bg-gray-100 text-gray-700" : "bg-blue-100 text-blue-800"
           )}
         >
           <div className="flex items-center gap-1">
@@ -420,7 +420,7 @@ function EventItem({ event, isPast }: EventItemProps) {
                 </span>
               ))}
               {event.contacts.length > 3 && (
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium bg-gray-400 text-white">
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium bg-gray-300 text-white">
                   +{event.contacts.length - 3}
                 </span>
               )}
@@ -452,7 +452,7 @@ function EventItem({ event, isPast }: EventItemProps) {
             ))}
           </div>
           {event.notes && (
-            <p className="text-xs text-gray-600 pt-1 border-t mt-1">
+            <p className="text-xs text-gray-700 pt-1 border-t mt-1">
               {event.notes}
             </p>
           )}
@@ -479,7 +479,7 @@ function DueDateItem({ contact, isToday }: DueDateItemProps) {
           className={cn(
             "text-xs p-1 rounded cursor-pointer truncate border-l-2",
             isSnoozed
-              ? "bg-gray-100 text-gray-600 border-gray-400"
+              ? "bg-gray-100 text-gray-700 border-gray-300"
               : isFuture
                 ? "bg-violet-50 text-violet-700 border-violet-400"
                 : isToday
@@ -509,7 +509,7 @@ function DueDateItem({ contact, isToday }: DueDateItemProps) {
             </span>
             {contact.name}
           </p>
-          <p className={cn("text-xs", isSnoozed ? "text-gray-600" : isFuture ? "text-violet-600" : "text-amber-600")}>
+          <p className={cn("text-xs", isSnoozed ? "text-gray-700" : isFuture ? "text-violet-600" : "text-amber-600")}>
             {isSnoozed ? "Snoozed until this date" : isFuture ? "Plan next" : isToday ? "Due today" : "Due"} &middot; Every {contact.cadenceDays} days
           </p>
           {contact.tags.length > 0 && (

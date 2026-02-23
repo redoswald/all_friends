@@ -94,7 +94,7 @@ export function EventsList({ events, contacts }: EventsListProps) {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-gray-100 rounded-full mt-1">
-                        <Calendar className="h-4 w-4 text-gray-600" />
+                        <Calendar className="h-4 w-4 text-gray-700" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export function EventsList({ events, contacts }: EventsListProps) {
                           ))}
                         </div>
                         {event.notes && (
-                          <p className="text-sm text-gray-600 mt-2">
+                          <p className="text-sm text-gray-700 mt-2">
                             {event.notes}
                           </p>
                         )}
