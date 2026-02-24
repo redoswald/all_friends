@@ -23,13 +23,17 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { EVENT_TYPE_LABELS } from "@/types";
-import { Event, Contact } from "@prisma/client";
+import { Event, Contact, Tag } from "@prisma/client";
 import { EventType } from "@/types";
 import { EditEventForm } from "./edit-event-form";
 import { formatDate } from "@/lib/date-utils";
 
+interface ContactWithTags extends Contact {
+  tags: { tag: Tag }[];
+}
+
 interface EventWithContacts extends Event {
-  contacts: { contact: Contact }[];
+  contacts: { contact: ContactWithTags }[];
 }
 
 interface EventsListProps {
@@ -109,19 +113,31 @@ export function EventsList({ events, contacts }: EventsListProps) {
                           {formatDate(event.date)}
                         </p>
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {event.contacts.map(({ contact }) => (
-                            <Link
-                              key={contact.id}
-                              href={`/contacts/${contact.id}`}
-                            >
-                              <Badge
-                                variant="secondary"
-                                className="text-xs hover:bg-gray-200"
+                          {event.contacts.map(({ contact }) => {
+                            const tagColor = contact.tags?.[0]?.tag?.color;
+                            return (
+                              <Link
+                                key={contact.id}
+                                href={`/contacts/${contact.id}`}
                               >
-                                {contact.name}
-                              </Badge>
-                            </Link>
-                          ))}
+                                {tagColor ? (
+                                  <Badge
+                                    className="text-xs text-white hover:opacity-80"
+                                    style={{ backgroundColor: tagColor }}
+                                  >
+                                    {contact.name}
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs hover:bg-gray-200"
+                                  >
+                                    {contact.name}
+                                  </Badge>
+                                )}
+                              </Link>
+                            );
+                          })}
                         </div>
                         {event.notes && (
                           <p className="text-sm text-gray-700 mt-2">

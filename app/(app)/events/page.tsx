@@ -10,7 +10,11 @@ async function getEvents() {
     where: { userId: user.id },
     include: {
       contacts: {
-        include: { contact: true },
+        include: {
+          contact: {
+            include: { tags: { include: { tag: true } } },
+          },
+        },
       },
     },
     orderBy: { date: "desc" },
