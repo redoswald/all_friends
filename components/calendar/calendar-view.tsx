@@ -20,6 +20,7 @@ import { Event, Contact, Tag } from "@prisma/client";
 import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { cn } from "@/lib/utils";
 import { LogEventForm } from "@/components/events/log-event-form";
+import { EditEventForm } from "@/components/events/edit-event-form";
 import { VacationModeDialog } from "@/components/calendar/vacation-mode-dialog";
 import { formatDateForInput } from "@/lib/date-utils";
 
@@ -82,6 +83,7 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -90,9 +92,19 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
     setDialogOpen(true);
   };
 
+  const handleEventClick = (event: EventWithContacts, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingEvent(event);
+  };
+
   const handleEventSuccess = () => {
     setDialogOpen(false);
     setSelectedDate(null);
+    router.refresh();
+  };
+
+  const handleEditSuccess = () => {
+    setEditingEvent(null);
     router.refresh();
   };
 
@@ -333,6 +345,7 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                                 "w-1.5 h-1.5 rounded-full",
                                 isPast ? "bg-gray-300" : "bg-blue-500"
                               )}
+                              onClick={(e) => handleEventClick(event, e)}
                             />
                           ))}
                           {dayEvents.length > 3 && (
@@ -346,6 +359,7 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                               key={event.id}
                               event={event}
                               isPast={isPast}
+                              onClick={(e) => handleEventClick(event, e)}
                             />
                           ))}
                           {dayEvents.length > 3 && (
@@ -385,6 +399,22 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Edit Event Dialog */}
+        <Dialog open={!!editingEvent} onOpenChange={(open) => { if (!open) setEditingEvent(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+            </DialogHeader>
+            {editingEvent && (
+              <EditEventForm
+                event={editingEvent}
+                contacts={contacts}
+                onSuccess={handleEditSuccess}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
@@ -393,15 +423,17 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
 interface EventItemProps {
   event: EventWithContacts;
   isPast: boolean;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
-function EventItem({ event, isPast }: EventItemProps) {
+function EventItem({ event, isPast, onClick }: EventItemProps) {
   const eventTitle = event.title || EVENT_TYPE_LABELS[event.eventType as EventType];
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div
+          onClick={onClick}
           className={cn(
             "text-xs p-1 rounded cursor-pointer truncate",
             isPast ? "bg-gray-100 text-gray-700" : "bg-blue-100 text-blue-800"
