@@ -1,6 +1,8 @@
 import { requireUser } from "@/lib/auth";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { AppearanceSection } from "@/components/settings/appearance-section";
+import { AppsSection } from "@/components/settings/apps-section";
+import { AboutSection } from "@/components/settings/about-section";
 
 export default async function SettingsPage() {
   const user = await requireUser();
@@ -18,6 +20,8 @@ export default async function SettingsPage() {
       />
 
       <AppearanceSection />
+      <AppsSection />
+      <AboutSection />
     </div>
   );
 }

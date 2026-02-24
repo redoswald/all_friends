@@ -1,15 +1,19 @@
 "use client";
 
 import { signOut } from "@/lib/auth";
+import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, Keyboard, Sun, Moon, Monitor } from "lucide-react";
 import Link from "next/link";
 
 interface AccountMenuProps {
@@ -33,6 +37,8 @@ function getInitials(name: string | null, email: string): string {
 }
 
 export function AccountMenu({ user }: AccountMenuProps) {
+  const { setTheme } = useTheme();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -60,6 +66,34 @@ export function AccountMenu({ user }: AccountMenuProps) {
             Settings
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() =>
+            document.dispatchEvent(new Event("open-keyboard-shortcuts"))
+          }
+        >
+          <Keyboard className="size-4" />
+          Keyboard shortcuts
+        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Sun className="size-4" />
+            Theme
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={() => setTheme("light")}>
+              <Sun className="size-4" />
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("dark")}>
+              <Moon className="size-4" />
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("system")}>
+              <Monitor className="size-4" />
+              System
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => signOut()}

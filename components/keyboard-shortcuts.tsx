@@ -68,6 +68,14 @@ export function KeyboardShortcuts() {
   }, []);
 
   useEffect(() => {
+    function onOpen() {
+      setOpen(true);
+    }
+    document.addEventListener("open-keyboard-shortcuts", onOpen);
+    return () => document.removeEventListener("open-keyboard-shortcuts", onOpen);
+  }, []);
+
+  useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (isEditableTarget(e.target)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
