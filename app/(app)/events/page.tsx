@@ -26,7 +26,7 @@ async function getEvents() {
 async function getContacts() {
   const user = await requireUser();
   return prisma.contact.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, isArchived: false },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });

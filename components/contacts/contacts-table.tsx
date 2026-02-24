@@ -37,7 +37,7 @@ import { Contact, Tag } from "@prisma/client";
 import { FunnelStage } from "@/types";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
-import { ArrowUp, ArrowDown, ArrowUpDown, Tags, X, Plus, Minus, Users, Clock } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Tags, X, Plus, Minus, Users, Clock, Archive } from "lucide-react";
 
 interface ContactWithDerived extends Contact {
   tags: { tag: Tag }[];
@@ -132,7 +132,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
     }
   };
 
-  const handleBulkUpdate = async (updates: { funnelStage?: string; cadenceDays?: number | null }) => {
+  const handleBulkUpdate = async (updates: { funnelStage?: string; cadenceDays?: number | null; isArchived?: boolean }) => {
     if (selectedIds.size === 0) return;
 
     setIsUpdating(true);
@@ -443,6 +443,17 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                 </div>
               </PopoverContent>
             </Popover>
+
+            {/* Archive button */}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isUpdating}
+              onClick={() => handleBulkUpdate({ isArchived: true })}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archive
+            </Button>
 
             {isUpdating && (
               <span className="text-sm text-teal-500">Updating...</span>

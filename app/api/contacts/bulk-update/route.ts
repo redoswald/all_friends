@@ -15,6 +15,7 @@ const bulkUpdateSchema = z.object({
       "DORMANT",
     ]).optional(),
     cadenceDays: z.number().int().positive().nullable().optional(),
+    isArchived: z.boolean().optional(),
   }),
 });
 
@@ -46,6 +47,9 @@ export async function POST(request: NextRequest) {
     }
     if (updates.cadenceDays !== undefined) {
       updateData.cadenceDays = updates.cadenceDays;
+    }
+    if (updates.isArchived !== undefined) {
+      updateData.isArchived = updates.isArchived;
     }
 
     // Update all contacts

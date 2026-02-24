@@ -42,7 +42,7 @@ async function getCalendarData(year: number, month: number) {
       orderBy: { date: "asc" },
     }),
     prisma.contact.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, isArchived: false },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
@@ -53,6 +53,7 @@ async function getCalendarData(year: number, month: number) {
   const contacts = await prisma.contact.findMany({
     where: {
       userId: user.id,
+      isArchived: false,
       cadenceDays: { not: null },
     },
     include: {

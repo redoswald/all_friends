@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const contacts = await prisma.contact.findMany({
       where: {
         userId: user.id,
+        isArchived: false,
         ...(tagId && {
           tags: {
             some: { tagId },

@@ -14,7 +14,7 @@
 
 ---
 
-## 1. ACCOUNT & SETTINGS (Missing entirely)
+## 1. ACCOUNT & SETTINGS
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
@@ -32,10 +32,10 @@
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
-| Delete confirmation modals | ❓ Unknown | High | Contacts, events, tags — all need "Are you sure?" |
+| Delete confirmation modals | ✅ | High | All single-item deletes (contacts, events, tags, fields, dates, relationships, OOO) use ConfirmDialog |
 | Undo after delete | ❌ | Medium | Toast with "Undo" button (5-second window) |
-| Archive vs. delete for contacts | ❌ | High | "I don't want to track this person right now" ≠ "erase them" |
-| Soft delete in database | ❓ Unknown | High | `deleted_at` timestamp so nothing is truly gone immediately |
+| Archive vs. delete for contacts | ✅ | High | isArchived flag hides from all views, restore banner, bulk archive, Archived filter toggle |
+| Soft delete in database | ❌ | High | All deletes are hard deletes — no `deleted_at` on any model |
 | Bulk delete safety | ❌ | Medium | "You're about to delete 12 contacts. Type DELETE to confirm." |
 
 ---
@@ -44,12 +44,12 @@
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
-| Zero contacts state | ❓ Unknown | High | New user lands on dashboard and sees... what? Should see a friendly "Add your first contact" prompt |
-| Zero events state | ❓ Unknown | High | Same — guide toward first event log |
-| Empty search results | ❓ Unknown | Medium | "No contacts match 'xyz'" with suggestion to broaden search |
-| Empty calendar month | ❓ Unknown | Low | "Nothing scheduled this month" rather than a blank grid |
-| All contacts up-to-date | ❓ Unknown | Medium | Dashboard "Needs Attention" is empty — celebrate! "You're all caught up 🎉" |
-| Error states | ❓ Unknown | High | What happens when Supabase is down? Network error? Auth expires mid-session? |
+| Zero contacts state | ✅ | High | EmptyState component with "Add your first contact" CTA in both list and kanban views |
+| Zero events state | ✅ | High | EmptyState with "Log your first event" message |
+| Empty search results | ✅ | Medium | CommandEmpty shows "No results found." (generic but functional) |
+| Empty calendar month | ✅ | Low | Calendar renders full grid gracefully with no events, plus icon on hover |
+| All contacts up-to-date | ✅ | Medium | Two distinct states: "No contacts yet" vs "You're all caught up!" with PartyPopper icon |
+| Error states | ⚠️ | High | API routes have try/catch + error toasts, but no error.tsx boundaries and command palette silently swallows errors |
 
 ---
 
@@ -57,11 +57,11 @@
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
-| Toast notifications on actions | ❓ Unknown | High | "Contact saved," "Event logged," "Tag deleted" |
-| Loading skeletons | ❓ Unknown | Medium | Placeholder shapes while data loads (dashboard stats, contact list) |
-| Optimistic updates | ❓ Unknown | Medium | UI updates immediately, syncs in background |
-| Save indicator on forms | ❓ Unknown | Medium | Auto-save with "Saved" / "Saving..." indicator, or explicit Save button with feedback |
-| Error toasts | ❓ Unknown | High | "Failed to save — try again" rather than silent failure |
+| Toast notifications on actions | ✅ | High | 40+ success toasts across all CRUD operations via Sonner |
+| Loading skeletons | ✅ | Medium | 6 loading pages with tailored skeleton shapes (contacts, dashboard, calendar, events, settings, contact detail) |
+| Optimistic updates | ❌ | Medium | All forms use traditional async/await pattern — no useTransition/useActionState |
+| Save indicator on forms | ✅ | Medium | All forms show "Saving.../Creating..." button text + disabled state |
+| Error toasts | ✅ | High | Comprehensive — form validation + API errors surface to users via toast.error |
 
 ---
 
@@ -69,11 +69,11 @@
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
-| Multi-select contacts | ❌ | Medium | Checkboxes on contact list |
-| Bulk tag/untag | ❌ | Medium | "Add tag 'College' to 8 selected contacts" |
+| Multi-select contacts | ✅ | Medium | Checkboxes on contact list |
+| Bulk tag/untag | ✅ | Medium | Bulk tag add/remove via API |
 | Bulk delete | ❌ | Low | Rare but necessary |
-| Bulk cadence change | ❌ | Medium | "Set all selected to 30-day cadence" |
-| Bulk stage change | ❌ | Low | Move multiple contacts between relationship stages |
+| Bulk cadence change | ✅ | Medium | Bulk update via API |
+| Bulk stage change | ✅ | Low | Bulk update via API |
 | Select all / deselect all | ❌ | Low | Standard multi-select UX |
 
 ---
@@ -83,11 +83,11 @@
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
 | ⌘K command palette | ✅ | — | Already exists — great |
-| Keyboard navigation of lists | ❓ Unknown | Medium | j/k or arrow keys to move through contacts/events |
-| Shortcut to add contact | ❓ Unknown | Medium | `c` or `n` from any screen |
-| Shortcut to log event | ❓ Unknown | Medium | `e` from any screen |
+| Keyboard navigation of lists | ❌ | Medium | No j/k or arrow key navigation for contacts/events |
+| Shortcut to add contact | ❌ | Medium | No global hotkey — only available via button on /contacts |
+| Shortcut to log event | ❌ | Medium | No global hotkey — only via button on /events or calendar click |
 | Shortcut reference / help | ✅ | Low | `?` opens keyboard shortcut overlay |
-| Focus management | ❓ Unknown | Medium | After creating a contact, focus goes... where? |
+| Focus management | ⚠️ | Medium | autoFocus on some inputs, but no explicit focus return after dialog close |
 
 ---
 
@@ -107,9 +107,9 @@
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
-| Responsive layout | ❓ Unknown | High | The dashboard stats bar (5 cards) will break on mobile |
-| Touch targets | ❓ Unknown | High | Buttons, tag pills, and due-date badges need ≥44px tap targets |
-| Mobile navigation | ❓ Unknown | High | Top nav → hamburger or bottom tab bar |
+| Responsive layout | ✅ | High | Dashboard uses grid-cols-2 on mobile, grid-cols-4 on desktop. Responsive padding throughout |
+| Touch targets | ⚠️ | High | Default buttons h-9 (36px), some h-8/h-6 — not all meet 44px minimum |
+| Mobile navigation | ✅ | High | Hamburger menu with Sheet component sliding from left on mobile |
 | Quick event logging on mobile | ❌ | High | This is THE mobile use case: you just hung out, log it now |
 | PWA / Add to Home Screen | ❌ | Medium | Makes it feel app-like on mobile without an App Store |
 
@@ -120,12 +120,12 @@
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
 | ⌘K global search | ✅ | — | Exists |
-| Filter contacts by tag | ❓ Unknown | High | Click "High school friends" → see only those contacts |
-| Filter contacts by stage | ❓ Unknown | Medium | "Show me all Acquaintances" |
-| Filter contacts by status | ❓ Unknown | High | "Show me only overdue contacts" |
-| Sort contacts | ❓ Unknown | Medium | By name, by last seen, by due date, by cadence |
-| Filter events by contact | ❓ Unknown | Medium | "Show me all events with Connor" |
-| Filter events by date range | ❓ Unknown | Medium | "Events in January" |
+| Filter contacts by tag | ✅ | High | Tag filter dropdown with URL parameter ?tagId={id} |
+| Filter contacts by stage | ✅ | Medium | Funnel stage filter dropdown with ?funnelStage={STAGE} |
+| Filter contacts by status | ✅ | High | Status filter: "Overdue", "Due soon", "On track" |
+| Sort contacts | ✅ | Medium | Sortable columns: name, tags, stage, cadence, lastSeen, status |
+| Filter events by contact | ❌ | Medium | No filtering UI on events page |
+| Filter events by date range | ❌ | Medium | Events shown in reverse chronological order only |
 | Saved filters / smart views | ❌ | Low | "Overdue + Close friends" as a saved view |
 
 ---
@@ -134,13 +134,13 @@
 
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
-| Contact avatar/photo | ❓ Unknown | Low | Initials fallback is fine, but photo upload option |
-| Phone / email / social links | ❓ Unknown | Medium | Click-to-call, click-to-email |
-| Birthday field | ❓ Unknown | Medium | With optional annual reminder |
-| Custom fields | ❌ | Low | "Favorite restaurant," "Partner's name," etc. |
-| Contact notes (persistent) | ❓ Unknown | High | Not event notes — just a scratchpad for the contact ("Allergic to shellfish," "Just got promoted") |
-| Activity timeline | ❓ Unknown | Medium | Scrollable history of all events on the contact detail |
-| Quick actions from detail | ❓ Unknown | Medium | "Log event," "Edit," "Archive" buttons prominently placed |
+| Contact avatar/photo | ❌ | Low | No avatarUrl on Contact model — initials only |
+| Phone / email / social links | ✅ | Medium | Click-to-call (tel:), click-to-email (mailto:), social links open in new window |
+| Birthday field | ✅ | Medium | ImportantDate with BIRTHDAY type, age calculation, Cake icon |
+| Custom fields | ✅ | Low | ContactField model with CUSTOM type + arbitrary label/value |
+| Contact notes (persistent) | ✅ | High | Notes field on Contact model, editable in create/edit forms |
+| Activity timeline | ✅ | Medium | "Event History" card with chronological list, edit/delete per event |
+| Quick actions from detail | ✅ | Medium | Log Event button + dropdown with Edit, Set Away, Delete |
 
 ---
 
@@ -149,10 +149,10 @@
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
 | Calendar exists | ✅ | — | Confirmed from landing page + past conversations |
-| Click-to-add on calendar | ❓ Unknown | Medium | Click a date → "Log event on Feb 23" |
-| Color coding by tag or contact | ❓ Unknown | Medium | Previous feedback flagged color system as arbitrary |
-| Week view option | ❓ Unknown | Low | Monthly + weekly toggles |
-| Calendar event previews | ❓ Unknown | Medium | Hover/click on a date dot → see event summary |
+| Click-to-add on calendar | ✅ | Medium | Click date → LogEventForm dialog with date pre-filled, plus icon on hover |
+| Color coding by tag or contact | ✅ | Medium | Events use contact colors, due dates show tag colors |
+| Week view option | ❌ | Low | Month view only — no weekly toggle |
+| Calendar event previews | ✅ | Medium | Hover shows tooltip (title, type, date, contacts, notes), click opens edit dialog |
 
 ---
 
@@ -176,20 +176,20 @@
 | Unified account settings page | ✅ | High | Settings page with Profile, Appearance, Security, Apps, Data, About |
 | App switcher in nav | ✅ | High | Apps section in settings + account menu |
 | Shared avatar/display name | ✅ | Medium | Profile section with editable display name, avatar from OAuth |
-| Consistent auth error handling | ❓ Unknown | Medium | Expired session → redirect to login, not a white screen |
+| Consistent auth error handling | ⚠️ | Medium | Server-side redirect to /login works, but no client-side 401 handling on fetch calls |
 | Shared component library | ❌ | Medium | Buttons, modals, toasts — same look across apps |
 
 ---
 
 ## Summary: Top 10 Priorities
 
-1. **Account management page** — Profile, password, data export (shared infra)
-2. **App switcher** — Minimal nav element linking All Friends ↔ Opus
-3. **Delete confirmations + archive vs. delete** — Prevent data loss
-4. **Toast/feedback system** — Users need to know their actions worked
-5. **Empty states** — New users and zero-data screens need love
-6. **Mobile responsiveness** — Quick event logging on phone is the killer mobile use case
-7. **Error handling** — Network failures, auth expiry, API errors need graceful UI
-8. **Welcome/onboarding flow** — First-run experience for new users (especially Zoë)
-9. **Contact notes (persistent)** — Not event-tied, just "stuff I know about this person"
-10. **Filter/sort on contacts** — With 66 contacts, you need more than scrolling
+1. ~~**Account management page**~~ ✅ — Profile, password, data export
+2. ~~**App switcher**~~ ✅ — Minimal nav element linking All Friends ↔ Opus
+3. ~~**Archive vs. delete**~~ ✅ — isArchived flag, restore, bulk archive
+4. ~~**Toast/feedback system**~~ ✅ — Comprehensive toasts + loading skeletons
+5. ~~**Empty states**~~ ✅ — All major pages have empty state handling
+6. **Mobile responsiveness** — Touch targets undersized, no quick mobile event logging
+7. **Error handling** — Need error.tsx boundaries, client-side 401 handling
+8. **Welcome/onboarding flow** — First-run experience for new users
+9. ~~**Contact notes (persistent)**~~ ✅ — Notes field on Contact model
+10. ~~**Filter/sort on contacts**~~ ✅ — Tag, stage, status filters + sortable columns

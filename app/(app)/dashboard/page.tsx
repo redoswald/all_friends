@@ -31,7 +31,7 @@ async function getDashboardData() {
 
   const now = new Date();
   const contacts = await prisma.contact.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, isArchived: false },
     include: {
       tags: {
         include: { tag: true },

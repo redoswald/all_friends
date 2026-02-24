@@ -42,6 +42,9 @@ model Contact {
   // Funnel stage (stored as string: PROSPECT, ACQUAINTANCE, DEVELOPING, ESTABLISHED, CLOSE, DORMANT)
   funnelStage String @default("ACQUAINTANCE")
 
+  // Archive flag — hidden from active views but restorable
+  isArchived Boolean @default(false)
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

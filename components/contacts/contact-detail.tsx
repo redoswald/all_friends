@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, MoreHorizontal, Pencil, Trash2, Plus, Calendar, Plane } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Pencil, Trash2, Plus, Calendar, Plane, Archive, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ContactStatus, getStatusText, CADENCE_OPTIONS, getAnnualFrequencyText } from "@/lib/cadence";
@@ -79,8 +79,43 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
   const [awayDialogOpen, setAwayDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [confirmDeleteContact, setConfirmDeleteContact] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+
+  const handleArchive = async () => {
+    setArchiving(true);
+    try {
+      const res = await fetch(`/api/contacts/${contact.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isArchived: true }),
+      });
+      if (res.ok) {
+        toast.success("Contact archived");
+        router.push("/contacts");
+      }
+    } finally {
+      setArchiving(false);
+    }
+  };
+
+  const handleUnarchive = async () => {
+    setArchiving(true);
+    try {
+      const res = await fetch(`/api/contacts/${contact.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isArchived: false }),
+      });
+      if (res.ok) {
+        toast.success("Contact restored");
+        router.refresh();
+      }
+    } finally {
+      setArchiving(false);
+    }
+  };
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -174,6 +209,15 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                 <Plane className="h-4 w-4 mr-2" />
                 {contact.status.isAway ? "Update Away" : "Set Away"}
               </DropdownMenuItem>
+              {!contact.isArchived && (
+                <DropdownMenuItem
+                  onSelect={handleArchive}
+                  disabled={archiving}
+                >
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archive
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-error"
                 onSelect={() => setConfirmDeleteContact(true)}
@@ -234,6 +278,24 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
         open={awayDialogOpen}
         onOpenChange={setAwayDialogOpen}
       />
+
+      {contact.isArchived && (
+        <div className="flex items-center justify-between gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-amber-700">
+            <Archive className="h-4 w-4" />
+            This contact is archived
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUnarchive}
+            disabled={archiving}
+          >
+            <ArchiveRestore className="h-4 w-4 mr-2" />
+            Restore
+          </Button>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">

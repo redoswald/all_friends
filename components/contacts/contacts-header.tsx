@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, X, Tags, LayoutList, Columns3 } from "lucide-react";
+import { Plus, Search, X, Tags, LayoutList, Columns3, Archive } from "lucide-react";
 import { CreateContactForm } from "./create-contact-form";
 import { CreateTagDialog } from "@/components/tags/create-tag-dialog";
 import { Tag } from "@prisma/client";
@@ -58,11 +58,14 @@ export function ContactsHeader({ tags, viewMode, onViewModeChange }: ContactsHea
     setSearch("");
   };
 
+  const isArchived = searchParams.get("archived") === "true";
+
   const hasFilters =
     searchParams.has("search") ||
     searchParams.has("tagId") ||
     searchParams.has("funnelStage") ||
-    searchParams.has("status");
+    searchParams.has("status") ||
+    searchParams.has("archived");
 
   return (
     <div className="space-y-4">
@@ -164,6 +167,16 @@ export function ContactsHeader({ tags, viewMode, onViewModeChange }: ContactsHea
               <SelectItem value="ok">On track</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            variant={isArchived ? "default" : "outline"}
+            size="sm"
+            onClick={() => updateFilter("archived", isArchived ? null : "true")}
+            className={isArchived ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}
+          >
+            <Archive className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Archived</span>
+          </Button>
 
           {hasFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>

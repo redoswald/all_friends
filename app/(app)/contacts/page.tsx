@@ -10,6 +10,7 @@ interface PageProps {
     tagId?: string;
     funnelStage?: string;
     status?: string;
+    archived?: string;
   }>;
 }
 
@@ -18,13 +19,15 @@ async function getContacts(searchParams: {
   tagId?: string;
   funnelStage?: string;
   status?: string;
+  archived?: string;
 }) {
   const user = await requireUser();
-  const { search, tagId, funnelStage, status } = searchParams;
+  const { search, tagId, funnelStage, status, archived } = searchParams;
 
   const contacts = await prisma.contact.findMany({
     where: {
       userId: user.id,
+      isArchived: archived === "true" ? true : false,
       ...(tagId && {
         tags: { some: { tagId } },
       }),

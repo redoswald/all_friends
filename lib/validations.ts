@@ -23,7 +23,9 @@ export const createContactSchema = z.object({
   tagIds: z.array(z.string()).optional(),
 });
 
-export const updateContactSchema = createContactSchema.partial();
+export const updateContactSchema = createContactSchema.partial().extend({
+  isArchived: z.boolean().optional(),
+});
 
 // Parse date string as local date and convert to UTC noon
 // This avoids timezone issues where "2025-11-28" could become Nov 27 in some timezones
