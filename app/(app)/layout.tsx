@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { CommandPalette } from "@/components/command-palette";
+import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { Toaster } from "@/components/ui/sonner";
 import { requireUser } from "@/lib/auth";
 
@@ -25,6 +26,7 @@ export default async function AppLayout({
         </div>
       </main>
       <CommandPalette />
+      <KeyboardShortcuts />
       <Toaster />
     </div>
   );
