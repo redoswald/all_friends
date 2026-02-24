@@ -74,7 +74,7 @@
 | Bulk delete | ❌ | Low | Rare but necessary |
 | Bulk cadence change | ✅ | Medium | Bulk update via API |
 | Bulk stage change | ✅ | Low | Bulk update via API |
-| Select all / deselect all | ❌ | Low | Standard multi-select UX |
+| Select all / deselect all | ✅ | Low | Header checkbox toggles all, with indeterminate state |
 
 ---
 
@@ -140,7 +140,7 @@
 | Custom fields | ✅ | Low | ContactField model with CUSTOM type + arbitrary label/value |
 | Contact notes (persistent) | ✅ | High | Notes field on Contact model, editable in create/edit forms |
 | Activity timeline | ✅ | Medium | "Event History" card with chronological list, edit/delete per event |
-| Quick actions from detail | ✅ | Medium | Log Event button + dropdown with Edit, Set Away, Delete |
+| Quick actions from detail | ✅ | Medium | Log Event button + dropdown with Edit, Set Away, Archive, Delete |
 
 ---
 
