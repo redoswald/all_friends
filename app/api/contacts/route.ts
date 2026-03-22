@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { createContactSchema } from "@/lib/validations";
 import { calculateContactStatus } from "@/lib/cadence";
+import { normalizeMetroArea } from "@/lib/metro";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +18,7 @@ export async function GET(request: NextRequest) {
       where: {
         userId: user.id,
         isArchived: false,
+        isSelf: false,
         ...(tagId && {
           tags: {
             some: { tagId },
@@ -90,6 +92,11 @@ export async function POST(request: NextRequest) {
     const data = createContactSchema.parse(body);
 
     const { tagIds, ...contactData } = data;
+
+    // Normalize metro area if provided
+    if (contactData.metroArea) {
+      contactData.metroArea = normalizeMetroArea(contactData.metroArea);
+    }
 
     const contact = await prisma.contact.create({
       data: {

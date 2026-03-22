@@ -21,6 +21,8 @@ export const createContactSchema = z.object({
     "DORMANT",
   ]).optional(),
   tagIds: z.array(z.string()).optional(),
+  location: z.string().max(200).optional().nullable(),
+  metroArea: z.string().max(100).optional().nullable(),
 });
 
 export const updateContactSchema = createContactSchema.partial().extend({
@@ -122,6 +124,8 @@ export const createOOOPeriodSchema = z.object({
   startDate: z.string().transform(parseLocalDateToUTC),
   endDate: z.string().transform(parseLocalDateToUTC),
   label: z.string().max(100).optional().nullable(),
+  destination: z.string().max(200).optional().nullable(),
+  destinationMetro: z.string().max(100).optional().nullable(),
 }).refine(
   (data) => data.endDate >= data.startDate,
   { message: "End date must be on or after start date" }
@@ -131,6 +135,8 @@ export const updateOOOPeriodSchema = z.object({
   startDate: z.string().transform(parseLocalDateToUTC).optional(),
   endDate: z.string().transform(parseLocalDateToUTC).optional(),
   label: z.string().max(100).optional().nullable(),
+  destination: z.string().max(200).optional().nullable(),
+  destinationMetro: z.string().max(100).optional().nullable(),
 });
 
 export type CreateOOOPeriodInput = z.infer<typeof createOOOPeriodSchema>;

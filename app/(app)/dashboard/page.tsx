@@ -31,7 +31,7 @@ async function getDashboardData() {
 
   const now = new Date();
   const contacts = await prisma.contact.findMany({
-    where: { userId: user.id, isArchived: false },
+    where: { userId: user.id, isArchived: false, isSelf: false },
     include: {
       tags: {
         include: { tag: true },
@@ -65,13 +65,7 @@ async function getDashboardData() {
   });
 
   const needsAttention = contactsWithStatus
-    .filter((c) => {
-      // Exclude snoozed contacts
-      if (c.snoozedUntil && new Date(c.snoozedUntil) > now) {
-        return false;
-      }
-      return c.status.isDue || c.status.isOverdue;
-    })
+    .filter((c) => c.status.isDue || c.status.isOverdue)
     .sort((a, b) => {
       if (a.status.isOverdue && !b.status.isOverdue) return -1;
       if (!a.status.isOverdue && b.status.isOverdue) return 1;
@@ -89,19 +83,14 @@ async function getDashboardData() {
   // Find incomplete contacts (created but never filled out)
   const incompleteContacts = contacts.filter(isIncompleteContact);
 
-  // Count excluding snoozed contacts
-  const nonSnoozedContacts = contactsWithStatus.filter(
-    (c) => !c.snoozedUntil || new Date(c.snoozedUntil) <= now
-  );
-
   return {
     needsAttention,
     incompleteContacts,
     stats: {
       totalContacts: contacts.length,
       eventsThisMonth,
-      overdueContacts: nonSnoozedContacts.filter((c) => c.status.isOverdue).length,
-      dueContacts: nonSnoozedContacts.filter((c) => c.status.isDue).length,
+      overdueContacts: contactsWithStatus.filter((c) => c.status.isOverdue).length,
+      dueContacts: contactsWithStatus.filter((c) => c.status.isDue).length,
       incompleteContacts: incompleteContacts.length,
     },
   };

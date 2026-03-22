@@ -55,13 +55,13 @@ All Friends is a personal relationship manager (PRM). Users track contacts, log 
 Core models in `prisma/schema.prisma`:
 
 - **User** — linked to Supabase via `supabaseId`
-- **Contact** — name, cadenceDays, funnelStage, snoozedUntil, awayUntil
+- **Contact** — name, cadenceDays, funnelStage, location, metroArea, isSelf
 - **Event** — date, eventType (HANGOUT/CALL/MESSAGE/EVENT/OTHER), linked to contacts via EventContact join table
 - **Tag** — user-scoped, unique by `[userId, name]`
 - **ContactField** — structured contact info (email, phone, social, custom)
 - **ImportantDate** — birthdays, anniversaries (day/month/year, year optional)
 - **ContactRelationship** — bidirectional links between contacts (spouse, sibling, etc.)
-- **ContactOOOPeriod** — out-of-office date ranges
+- **ContactOOOPeriod** — out-of-office date ranges with optional destination
 - **ActionItem** — todos attached to events
 
 All user-owned models cascade delete from User. All contact-owned models cascade from Contact.

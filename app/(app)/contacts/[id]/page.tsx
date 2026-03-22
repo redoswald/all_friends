@@ -95,7 +95,7 @@ async function getTags() {
 async function getContacts() {
   const user = await requireUser();
   return prisma.contact.findMany({
-    where: { userId: user.id, isArchived: false },
+    where: { userId: user.id, isArchived: false, isSelf: false },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });

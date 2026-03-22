@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { createOOOPeriodSchema } from "@/lib/validations";
+import { normalizeMetroArea } from "@/lib/metro";
 
 export async function GET(
   request: NextRequest,
@@ -52,6 +53,11 @@ export async function POST(
 
     if (!contact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+    }
+
+    // Normalize destination metro if provided
+    if (data.destinationMetro) {
+      data.destinationMetro = normalizeMetroArea(data.destinationMetro);
     }
 
     const period = await prisma.contactOOOPeriod.create({

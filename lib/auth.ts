@@ -5,6 +5,24 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { cache } from "react";
 
+// Helper: Ensure a self-contact record exists for the user
+async function ensureSelfContact(userId: string, name: string | null, email: string) {
+  const existing = await prisma.contact.findFirst({
+    where: { userId, isSelf: true },
+  });
+
+  if (!existing) {
+    await prisma.contact.create({
+      data: {
+        userId,
+        name: name || email,
+        isSelf: true,
+        funnelStage: "CLOSE",
+      },
+    });
+  }
+}
+
 // Helper: Sync Supabase user to Prisma User table
 async function syncUserToPrisma(supabaseUser: {
   id: string;
@@ -25,9 +43,10 @@ async function syncUserToPrisma(supabaseUser: {
     where: { email },
   });
 
+  let user;
   if (existingUser) {
     // Update existing user with supabaseId
-    return await prisma.user.update({
+    user = await prisma.user.update({
       where: { email },
       data: {
         supabaseId: supabaseUser.id,
@@ -37,10 +56,15 @@ async function syncUserToPrisma(supabaseUser: {
     });
   } else {
     // Create new user
-    return await prisma.user.create({
+    user = await prisma.user.create({
       data: { supabaseId: supabaseUser.id, email, name, avatarUrl },
     });
   }
+
+  // Ensure self-contact exists
+  await ensureSelfContact(user.id, user.name, email);
+
+  return user;
 }
 
 // Email/Password Sign Up

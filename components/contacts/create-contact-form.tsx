@@ -51,6 +51,8 @@ export function CreateContactForm({ tags, onSuccess }: CreateContactFormProps) {
       name: formData.get("name") as string,
       nickname: (formData.get("nickname") as string) || null,
       relationship: (formData.get("relationship") as string) || null,
+      location: (formData.get("location") as string) || null,
+      metroArea: (formData.get("metroArea") as string) || null,
       notes: (formData.get("notes") as string) || null,
       cadenceDays,
       funnelStage: formData.get("funnelStage") as string,
@@ -102,6 +104,18 @@ export function CreateContactForm({ tags, onSuccess }: CreateContactFormProps) {
         <div className="space-y-2">
           <Label htmlFor="relationship">Relationship</Label>
           <Input id="relationship" name="relationship" placeholder="College friend, Mom, etc." />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="location">Location</Label>
+          <Input id="location" name="location" placeholder="City, state, or address" />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="metroArea">Metro Area</Label>
+          <Input id="metroArea" name="metroArea" placeholder="e.g. DC, NYC, Bay Area" />
         </div>
       </div>
 

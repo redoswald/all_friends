@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { updateContactSchema } from "@/lib/validations";
 import { calculateContactStatus } from "@/lib/cadence";
+import { normalizeMetroArea } from "@/lib/metro";
 
 export async function GET(
   request: NextRequest,
@@ -81,6 +82,11 @@ export async function PATCH(
     }
 
     const { tagIds, ...contactData } = data;
+
+    // Normalize metro area if provided
+    if (contactData.metroArea !== undefined) {
+      contactData.metroArea = normalizeMetroArea(contactData.metroArea);
+    }
 
     // Update contact and tags in a transaction
     const contact = await prisma.$transaction(async (tx) => {

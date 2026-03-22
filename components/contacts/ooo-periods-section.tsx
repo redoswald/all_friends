@@ -78,11 +78,13 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [label, setLabel] = useState("");
+  const [destination, setDestination] = useState("");
 
   const resetForm = () => {
     setStartDate(undefined);
     setEndDate(undefined);
     setLabel("");
+    setDestination("");
     setIsAdding(false);
     setEditingId(null);
   };
@@ -105,6 +107,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
           startDate: format(startDate, "yyyy-MM-dd"),
           endDate: format(endDate, "yyyy-MM-dd"),
           label: label || null,
+          destination: destination || null,
         }),
       });
 
@@ -140,6 +143,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
     setStartDate(new Date(period.startDate));
     setEndDate(new Date(period.endDate));
     setLabel(period.label || "");
+    setDestination(period.destination || "");
   };
 
   // Sort periods: active first, then future by start date, then past
@@ -216,14 +220,25 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
           </Popover>
         </div>
       </div>
-      <div>
-        <Label className="text-xs">Label (optional)</Label>
-        <Input
-          className="h-8"
-          placeholder="e.g., Cruise, Work trip, Vacation"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label className="text-xs">Label (optional)</Label>
+          <Input
+            className="h-8"
+            placeholder="e.g., Cruise, Work trip"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Destination (optional)</Label>
+          <Input
+            className="h-8"
+            placeholder="e.g., New York, Paris"
+            value={destination}
+            onChange={(e) => setDestination(e.target.value)}
+          />
+        </div>
       </div>
       <div className="flex gap-2">
         <Button
@@ -336,6 +351,9 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {formatDateRange(period.startDate, period.endDate)}
+                      {period.destination && (
+                        <span className="ml-1">→ {period.destination}</span>
+                      )}
                     </p>
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">

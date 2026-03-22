@@ -1,11 +1,13 @@
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/db";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { AppearanceSection } from "@/components/settings/appearance-section";
 import { SecuritySection } from "@/components/settings/security-section";
 import { AppsSection } from "@/components/settings/apps-section";
 import { DataSection } from "@/components/settings/data-section";
 import { AboutSection } from "@/components/settings/about-section";
+import { YourOOOSection } from "@/components/settings/your-ooo-section";
 
 export default async function SettingsPage() {
   const user = await requireUser();
@@ -15,6 +17,16 @@ export default async function SettingsPage() {
   const { data: { user: supabaseUser } } = await supabase.auth.getUser();
   const providers = supabaseUser?.app_metadata?.providers ??
     supabaseUser?.identities?.map((i) => i.provider) ?? [];
+
+  // Fetch self-contact for home base and OOO periods
+  const selfContact = await prisma.contact.findFirst({
+    where: { userId: user.id, isSelf: true },
+    include: {
+      oooPeriods: {
+        orderBy: { startDate: "asc" },
+      },
+    },
+  });
 
   return (
     <div className="space-y-8">
@@ -26,7 +38,18 @@ export default async function SettingsPage() {
           email: user.email,
           avatarUrl: user.avatarUrl,
         }}
+        selfContact={selfContact ? {
+          location: selfContact.location,
+          metroArea: selfContact.metroArea,
+        } : null}
       />
+
+      {selfContact && (
+        <YourOOOSection
+          contactId={selfContact.id}
+          periods={selfContact.oooPeriods}
+        />
+      )}
 
       <AppearanceSection />
       <SecuritySection email={user.email} providers={providers} />

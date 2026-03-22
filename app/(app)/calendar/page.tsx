@@ -42,7 +42,7 @@ async function getCalendarData(year: number, month: number) {
       orderBy: { date: "asc" },
     }),
     prisma.contact.findMany({
-      where: { userId: user.id, isArchived: false },
+      where: { userId: user.id, isArchived: false, isSelf: false },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
@@ -79,24 +79,15 @@ async function getCalendarData(year: number, month: number) {
       .sort((a, b) => a.event.date.getTime() - b.event.date.getTime());
     const nextFutureEvent = futureEvents[0]?.event;
 
-    // Check if contact is snoozed
-    const isSnoozed = contact.snoozedUntil && new Date(contact.snoozedUntil) > now;
-
     // Calculate due date based on:
-    // 1. If snoozed, due date = snooze end date
-    // 2. If there's a future event, due date = future event date + cadence
-    // 3. If no future event but has past event, due date = last past event + cadence
-    // 4. If no events at all, due now
+    // 1. If there's a future event, due date = future event date + cadence
+    // 2. If no future event but has past event, due date = last past event + cadence
+    // 3. If no events at all, due now
     let dueDate: Date | null = null;
     let isFutureDueDate = false;
-    let isSnoozedDueDate = false;
 
     if (contact.cadenceDays) {
-      if (isSnoozed) {
-        // Snoozed - show on snooze end date
-        dueDate = new Date(contact.snoozedUntil!);
-        isSnoozedDueDate = true;
-      } else if (nextFutureEvent) {
+      if (nextFutureEvent) {
         // Calculate next due date after the planned future event
         dueDate = new Date(nextFutureEvent.date);
         dueDate.setDate(dueDate.getDate() + contact.cadenceDays);
@@ -118,7 +109,6 @@ async function getCalendarData(year: number, month: number) {
       tags: contact.tags,
       dueDate,
       isFutureDueDate,
-      isSnoozedDueDate,
     };
   }).filter((c): c is typeof c & { dueDate: Date } => c.dueDate !== null);
 

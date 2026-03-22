@@ -27,6 +27,7 @@ async function getContacts(searchParams: {
   const contacts = await prisma.contact.findMany({
     where: {
       userId: user.id,
+      isSelf: false,
       isArchived: archived === "true" ? true : false,
       ...(tagId && {
         tags: { some: { tagId } },

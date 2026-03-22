@@ -59,7 +59,6 @@ interface ContactWithRelations extends Contact {
   oooPeriods: ContactOOOPeriod[];
   lastEventDate: Date | null;
   status: ContactStatus;
-  snoozedUntil: Date | null;
 }
 
 interface ContactDetailProps {
@@ -311,6 +310,19 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                     <p className="font-medium">{contact.relationship}</p>
                   </div>
                 )}
+                {(contact.location || contact.metroArea) && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-gray-500">Location</p>
+                    <p className="font-medium">
+                      {contact.location || contact.metroArea}
+                      {contact.location && contact.metroArea && contact.location !== contact.metroArea && (
+                        <span className="text-gray-500 font-normal ml-1">
+                          ({contact.metroArea})
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-500">Stage</p>
                   <p className="font-medium">
@@ -348,17 +360,8 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                         month: "short",
                         day: "numeric",
                       })}
-                      {contact.status.currentOOOPeriod.label && ` (${contact.status.currentOOOPeriod.label})`}
-                    </Badge>
-                  ) : contact.snoozedUntil && new Date(contact.snoozedUntil) > new Date() ? (
-                    <Badge
-                      variant="outline"
-                      className="border-gray-400 text-gray-700 bg-gray-50"
-                    >
-                      Snoozed until {new Date(contact.snoozedUntil).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {contact.status.currentOOOPeriod.destination && ` — in ${contact.status.currentOOOPeriod.destination}`}
+                      {contact.status.currentOOOPeriod.label && !contact.status.currentOOOPeriod.destination && ` (${contact.status.currentOOOPeriod.label})`}
                     </Badge>
                   ) : contact.status.hasUpcomingEvent ? (
                     <Badge

@@ -2,6 +2,7 @@ export interface OOOPeriod {
   startDate: Date;
   endDate: Date;
   label?: string | null;
+  destination?: string | null;
 }
 
 export interface ContactStatus {
@@ -15,7 +16,7 @@ export interface ContactStatus {
   daysUntilNextEvent: number | null;
   isAway: boolean;
   daysUntilBack: number | null;
-  currentOOOPeriod: { label?: string | null; endDate: Date } | null;
+  currentOOOPeriod: { label?: string | null; endDate: Date; destination?: string | null } | null;
   upcomingOOOCount: number;
 }
 
@@ -56,7 +57,7 @@ export function calculateContactStatus(
       isAway,
       daysUntilBack,
       currentOOOPeriod: currentOOOPeriod
-        ? { label: currentOOOPeriod.label, endDate: currentOOOPeriod.endDate }
+        ? { label: currentOOOPeriod.label, endDate: currentOOOPeriod.endDate, destination: currentOOOPeriod.destination }
         : null,
       upcomingOOOCount,
     };

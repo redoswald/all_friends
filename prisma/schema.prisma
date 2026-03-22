@@ -35,9 +35,14 @@ model Contact {
   relationship String?
 
   // Cadence tracking
-  cadenceDays  Int?
-  snoozedUntil DateTime?
-  awayUntil    DateTime? // Contact is away (e.g., traveling) - due date shifts to after return
+  cadenceDays Int?
+
+  // Location
+  location  String? // Free text address or city
+  metroArea String? // Normalized metro area name (e.g., "Washington, DC")
+
+  // Self-contact flag — marks the user's own contact record
+  isSelf Boolean @default(false)
 
   // Funnel stage (stored as string: PROSPECT, ACQUAINTANCE, DEVELOPING, ESTABLISHED, CLOSE, DORMANT)
   funnelStage String @default("ACQUAINTANCE")
@@ -200,6 +205,9 @@ model ContactOOOPeriod {
   startDate DateTime // Start of OOO period
   endDate   DateTime // End of OOO period (day they return)
   label     String?  // Optional: "Cruise", "Work trip to London", etc.
+
+  destination      String? // Where they're going (free text)
+  destinationMetro String? // Normalized metro area of destination
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

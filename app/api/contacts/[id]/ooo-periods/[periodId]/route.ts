@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { updateOOOPeriodSchema } from "@/lib/validations";
+import { normalizeMetroArea } from "@/lib/metro";
 
 export async function PATCH(
   request: NextRequest,
@@ -39,6 +40,11 @@ export async function PATCH(
         { error: "End date must be on or after start date" },
         { status: 400 }
       );
+    }
+
+    // Normalize destination metro if provided
+    if (data.destinationMetro !== undefined) {
+      data.destinationMetro = normalizeMetroArea(data.destinationMetro);
     }
 
     const period = await prisma.contactOOOPeriod.update({

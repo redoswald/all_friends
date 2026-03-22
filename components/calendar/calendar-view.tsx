@@ -21,7 +21,6 @@ import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { cn } from "@/lib/utils";
 import { LogEventForm } from "@/components/events/log-event-form";
 import { EditEventForm } from "@/components/events/edit-event-form";
-import { VacationModeDialog } from "@/components/calendar/vacation-mode-dialog";
 import { formatDateForInput } from "@/lib/date-utils";
 
 interface ContactWithTags extends Contact {
@@ -41,7 +40,6 @@ interface ContactDueDate {
   tags: { tag: Tag }[];
   dueDate: Date;
   isFutureDueDate: boolean;
-  isSnoozedDueDate: boolean;
 }
 
 interface CalendarViewProps {
@@ -220,9 +218,6 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
             </h2>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
-            <div className="hidden sm:block">
-              <VacationModeDialog />
-            </div>
             <Button variant="outline" size="sm" onClick={goToToday}>
               Today
             </Button>
@@ -290,11 +285,9 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                               key={contact.id}
                               className={cn(
                                 "w-1.5 h-1.5 rounded-full",
-                                contact.isSnoozedDueDate
-                                  ? "bg-gray-300"
-                                  : contact.isFutureDueDate
-                                    ? "bg-violet-400"
-                                    : "bg-amber-500"
+                                contact.isFutureDueDate
+                                  ? "bg-violet-400"
+                                  : "bg-amber-500"
                               )}
                             />
                           ))}
@@ -502,7 +495,6 @@ interface DueDateItemProps {
 function DueDateItem({ contact, isToday }: DueDateItemProps) {
   const color = getTagColor(contact.tags);
   const isFuture = contact.isFutureDueDate;
-  const isSnoozed = contact.isSnoozedDueDate;
 
   return (
     <Tooltip>
@@ -510,19 +502,17 @@ function DueDateItem({ contact, isToday }: DueDateItemProps) {
         <div
           className={cn(
             "text-xs p-1 rounded cursor-pointer truncate border-l-2",
-            isSnoozed
-              ? "bg-gray-100 text-gray-700 border-gray-300"
-              : isFuture
-                ? "bg-violet-50 text-violet-700 border-violet-400"
-                : isToday
-                  ? "bg-amber-100 text-amber-800 border-amber-500"
-                  : "bg-amber-50 text-amber-700 border-amber-400"
+            isFuture
+              ? "bg-violet-50 text-violet-700 border-violet-400"
+              : isToday
+                ? "bg-amber-100 text-amber-800 border-amber-500"
+                : "bg-amber-50 text-amber-700 border-amber-400"
           )}
         >
           <div className="flex items-center gap-1">
             <span
               className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-medium text-white flex-shrink-0"
-              style={{ backgroundColor: isSnoozed ? "#9ca3af" : color }}
+              style={{ backgroundColor: color }}
             >
               {getInitials(contact.name).charAt(0)}
             </span>
@@ -541,8 +531,8 @@ function DueDateItem({ contact, isToday }: DueDateItemProps) {
             </span>
             {contact.name}
           </p>
-          <p className={cn("text-xs", isSnoozed ? "text-gray-700" : isFuture ? "text-violet-600" : "text-amber-600")}>
-            {isSnoozed ? "Snoozed until this date" : isFuture ? "Plan next" : isToday ? "Due today" : "Due"} &middot; Every {contact.cadenceDays} days
+          <p className={cn("text-xs", isFuture ? "text-violet-600" : "text-amber-600")}>
+            {isFuture ? "Plan next" : isToday ? "Due today" : "Due"} &middot; Every {contact.cadenceDays} days
           </p>
           {contact.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
