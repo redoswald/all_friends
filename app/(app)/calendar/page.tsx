@@ -2,6 +2,17 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { CalendarView } from "@/components/calendar/calendar-view";
 
+interface OOOBlock {
+  id: string;
+  contactId: string;
+  contactName: string;
+  isSelf: boolean;
+  startDate: Date;
+  endDate: Date;
+  label: string | null;
+  destination: string | null;
+}
+
 async function getCalendarData(year: number, month: number) {
   const user = await requireUser();
 
@@ -48,12 +59,13 @@ async function getCalendarData(year: number, month: number) {
     }),
   ]);
 
-  // Get contacts with cadence to calculate due dates
+  // Get contacts with cadence to calculate due dates (include OOO periods)
   const now = new Date();
   const contacts = await prisma.contact.findMany({
     where: {
       userId: user.id,
       isArchived: false,
+      isSelf: false,
       cadenceDays: { not: null },
     },
     include: {
@@ -64,41 +76,50 @@ async function getCalendarData(year: number, month: number) {
         include: { event: true },
         orderBy: { event: { date: "desc" } },
       },
+      oooPeriods: {
+        orderBy: { startDate: "asc" },
+      },
     },
   });
 
-  // Calculate due dates for each contact
+  // Calculate due dates for each contact (adjusting for OOO periods)
   const contactDueDates = contacts.map((contact) => {
-    // Get last past event
     const pastEvents = contact.events.filter((e) => e.event.date <= now);
     const lastPastEvent = pastEvents[0]?.event;
 
-    // Get future events (already planned), sorted by date ascending
     const futureEvents = contact.events
       .filter((e) => e.event.date > now)
       .sort((a, b) => a.event.date.getTime() - b.event.date.getTime());
     const nextFutureEvent = futureEvents[0]?.event;
 
-    // Calculate due date based on:
-    // 1. If there's a future event, due date = future event date + cadence
-    // 2. If no future event but has past event, due date = last past event + cadence
-    // 3. If no events at all, due now
     let dueDate: Date | null = null;
     let isFutureDueDate = false;
 
     if (contact.cadenceDays) {
       if (nextFutureEvent) {
-        // Calculate next due date after the planned future event
         dueDate = new Date(nextFutureEvent.date);
         dueDate.setDate(dueDate.getDate() + contact.cadenceDays);
         isFutureDueDate = true;
       } else if (lastPastEvent) {
-        // Calculate due date from last past event
         dueDate = new Date(lastPastEvent.date);
         dueDate.setDate(dueDate.getDate() + contact.cadenceDays);
       } else {
-        // Never seen - due now
         dueDate = new Date();
+      }
+
+      // Shift due date past any OOO periods
+      if (dueDate && contact.oooPeriods.length > 0) {
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const period of contact.oooPeriods) {
+            if (dueDate >= period.startDate && dueDate <= period.endDate) {
+              dueDate = new Date(period.endDate);
+              dueDate.setDate(dueDate.getDate() + 1);
+              changed = true;
+            }
+          }
+        }
       }
     }
 
@@ -112,7 +133,46 @@ async function getCalendarData(year: number, month: number) {
     };
   }).filter((c): c is typeof c & { dueDate: Date } => c.dueDate !== null);
 
-  return { events, contactDueDates, allContacts };
+  // Get OOO periods for all contacts (including self) that overlap with the view
+  const oooContacts = await prisma.contact.findMany({
+    where: {
+      userId: user.id,
+      oooPeriods: {
+        some: {
+          OR: [
+            { startDate: { lte: endOfView }, endDate: { gte: startOfView } },
+          ],
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      isSelf: true,
+      oooPeriods: {
+        where: {
+          startDate: { lte: endOfView },
+          endDate: { gte: startOfView },
+        },
+        orderBy: { startDate: "asc" },
+      },
+    },
+  });
+
+  const oooBlocks: OOOBlock[] = oooContacts.flatMap((contact) =>
+    contact.oooPeriods.map((period) => ({
+      id: period.id,
+      contactId: contact.id,
+      contactName: contact.isSelf ? "You" : contact.name,
+      isSelf: contact.isSelf,
+      startDate: period.startDate,
+      endDate: period.endDate,
+      label: period.label,
+      destination: period.destination,
+    }))
+  );
+
+  return { events, contactDueDates, allContacts, oooBlocks };
 }
 
 interface PageProps {
@@ -128,7 +188,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
   const year = params.year ? parseInt(params.year) : now.getFullYear();
   const month = params.month ? parseInt(params.month) : now.getMonth();
 
-  const { events, contactDueDates, allContacts } = await getCalendarData(year, month);
+  const { events, contactDueDates, allContacts, oooBlocks } = await getCalendarData(year, month);
 
   return (
     <div className="space-y-6">
@@ -137,6 +197,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
         events={events}
         contactDueDates={contactDueDates}
         contacts={allContacts}
+        oooBlocks={oooBlocks}
         year={year}
         month={month}
       />

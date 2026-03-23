@@ -15,7 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Plane } from "lucide-react";
 import { Event, Contact, Tag } from "@prisma/client";
 import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { cn } from "@/lib/utils";
@@ -42,10 +42,22 @@ interface ContactDueDate {
   isFutureDueDate: boolean;
 }
 
+interface OOOBlock {
+  id: string;
+  contactId: string;
+  contactName: string;
+  isSelf: boolean;
+  startDate: Date;
+  endDate: Date;
+  label: string | null;
+  destination: string | null;
+}
+
 interface CalendarViewProps {
   events: EventWithContacts[];
   contactDueDates: ContactDueDate[];
   contacts: { id: string; name: string }[];
+  oooBlocks: OOOBlock[];
   year: number;
   month: number;
 }
@@ -77,7 +89,7 @@ function getTagColor(tags: { tag: Tag }[]): string {
   return firstTag?.color || "#6b7280";
 }
 
-export function CalendarView({ events, contactDueDates, contacts, year, month }: CalendarViewProps) {
+export function CalendarView({ events, contactDueDates, contacts, oooBlocks, year, month }: CalendarViewProps) {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -183,6 +195,26 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
     dueDatesByDate.set(dateKey, existing);
   });
 
+  // Group OOO blocks by date — each block appears on every day it spans
+  const oooByDate = new Map<string, OOOBlock[]>();
+  oooBlocks.forEach((block) => {
+    const start = new Date(block.startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(block.endDate);
+    end.setHours(0, 0, 0, 0);
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const dateKey = cursor.toDateString();
+      const existing = oooByDate.get(dateKey) || [];
+      // Deduplicate by block id
+      if (!existing.some((b) => b.id === block.id)) {
+        existing.push(block);
+      }
+      oooByDate.set(dateKey, existing);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  });
+
   const navigateMonth = (delta: number) => {
     let newMonth = month + delta;
     let newYear = year;
@@ -246,6 +278,8 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                 const dateKey = date.toDateString();
                 const dayEvents = eventsByDate.get(dateKey) || [];
                 const dayDueDates = dueDatesByDate.get(dateKey) || [];
+                const dayOOO = oooByDate.get(dateKey) || [];
+                const hasSelfOOO = dayOOO.some((b) => b.isSelf);
                 const isToday = date.toDateString() === today.toDateString();
                 const isPast = date < today;
 
@@ -255,7 +289,8 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                     className={cn(
                       "min-h-[60px] sm:min-h-[100px] p-0.5 sm:p-1 border-r last:border-r-0 group cursor-pointer hover:bg-gray-100 transition-colors",
                       !isCurrentMonth && "bg-gray-50 hover:bg-gray-100",
-                      isToday && "bg-blue-50 hover:bg-blue-100"
+                      isToday && !hasSelfOOO && "bg-blue-50 hover:bg-blue-100",
+                      hasSelfOOO && "bg-purple-50 hover:bg-purple-100"
                     )}
                     onClick={() => handleDayClick(date)}
                   >
@@ -321,6 +356,64 @@ export function CalendarView({ events, contactDueDates, contacts, year, month }:
                                 </div>
                               </TooltipContent>
                             </Tooltip>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* OOO blocks */}
+                    {dayOOO.length > 0 && (
+                      <>
+                        {/* Mobile: purple dots */}
+                        <div className="sm:hidden flex flex-wrap gap-0.5 mb-0.5">
+                          {dayOOO.slice(0, 2).map((block) => (
+                            <div
+                              key={block.id}
+                              className="w-1.5 h-1.5 rounded-full bg-purple-400"
+                            />
+                          ))}
+                        </div>
+                        {/* Desktop: show OOO items */}
+                        <div className="hidden sm:block space-y-1 mb-1">
+                          {dayOOO.slice(0, 2).map((block) => (
+                            <Tooltip key={block.id}>
+                              <TooltipTrigger asChild>
+                                <div className={cn(
+                                  "text-xs p-1 rounded cursor-pointer truncate border-l-2",
+                                  block.isSelf
+                                    ? "bg-purple-100 text-purple-800 border-purple-500"
+                                    : "bg-purple-50 text-purple-700 border-purple-300"
+                                )}>
+                                  <div className="flex items-center gap-1">
+                                    <Plane className="h-3 w-3 flex-shrink-0" />
+                                    <span className="truncate">
+                                      {block.contactName}
+                                      {block.destination && ` → ${block.destination}`}
+                                    </span>
+                                  </div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom">
+                                <div className="space-y-1">
+                                  <p className="font-medium">
+                                    {block.contactName} — {block.label || "Away"}
+                                  </p>
+                                  {block.destination && (
+                                    <p className="text-xs text-purple-600">→ {block.destination}</p>
+                                  )}
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(block.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                    {" – "}
+                                    {new Date(block.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+                          {dayOOO.length > 2 && (
+                            <div className="text-xs text-purple-500 px-1">
+                              +{dayOOO.length - 2} more away
+                            </div>
                           )}
                         </div>
                       </>
