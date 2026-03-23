@@ -30,6 +30,14 @@ async function getDashboardData() {
   const user = await requireUser();
 
   const now = new Date();
+
+  // Get user's own OOO periods
+  const selfContact = await prisma.contact.findFirst({
+    where: { userId: user.id, isSelf: true },
+    select: { oooPeriods: { orderBy: { startDate: "asc" } } },
+  });
+  const userOOOPeriods = selfContact?.oooPeriods ?? [];
+
   const contacts = await prisma.contact.findMany({
     where: { userId: user.id, isArchived: false, isSelf: false },
     include: {
@@ -56,7 +64,9 @@ async function getDashboardData() {
     const nextEvent = futureEvents[futureEvents.length - 1]?.event;
     const nextEventDate = nextEvent?.date ?? null;
 
-    const status = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.oooPeriods);
+    // Combine contact's OOO with user's OOO so due dates shift for both
+    const allOOOPeriods = [...contact.oooPeriods, ...userOOOPeriods];
+    const status = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, allOOOPeriods);
     return {
       ...contact,
       lastEventDate,

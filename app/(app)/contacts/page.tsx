@@ -58,6 +58,14 @@ async function getContacts(searchParams: {
   });
 
   const now = new Date();
+
+  // Get user's own OOO periods
+  const selfContact = await prisma.contact.findFirst({
+    where: { userId: user.id, isSelf: true },
+    select: { oooPeriods: { orderBy: { startDate: "asc" } } },
+  });
+  const userOOOPeriods = selfContact?.oooPeriods ?? [];
+
   const contactsWithStatus = contacts.map((contact) => {
     const pastEvents = contact.events.filter((e) => e.event.date <= now);
     const futureEvents = contact.events.filter((e) => e.event.date > now);
@@ -68,7 +76,8 @@ async function getContacts(searchParams: {
     const nextEvent = futureEvents[futureEvents.length - 1]?.event;
     const nextEventDate = nextEvent?.date ?? null;
 
-    const contactStatus = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, contact.oooPeriods);
+    const allOOOPeriods = [...contact.oooPeriods, ...userOOOPeriods];
+    const contactStatus = calculateContactStatus(lastEventDate, contact.cadenceDays, nextEventDate, allOOOPeriods);
     return {
       ...contact,
       lastEventDate,

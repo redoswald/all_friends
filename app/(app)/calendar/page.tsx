@@ -59,8 +59,17 @@ async function getCalendarData(year: number, month: number) {
     }),
   ]);
 
-  // Get contacts with cadence to calculate due dates (include OOO periods)
+  // Get user's own OOO periods (from self-contact)
   const now = new Date();
+  const selfContact = await prisma.contact.findFirst({
+    where: { userId: user.id, isSelf: true },
+    select: {
+      oooPeriods: { orderBy: { startDate: "asc" } },
+    },
+  });
+  const userOOOPeriods = selfContact?.oooPeriods ?? [];
+
+  // Get contacts with cadence to calculate due dates (include OOO periods)
   const contacts = await prisma.contact.findMany({
     where: {
       userId: user.id,
@@ -107,12 +116,13 @@ async function getCalendarData(year: number, month: number) {
         dueDate = new Date();
       }
 
-      // Shift due date past any OOO periods
-      if (dueDate && contact.oooPeriods.length > 0) {
+      // Shift due date past contact's OOO periods AND user's OOO periods
+      const allBlockingPeriods = [...contact.oooPeriods, ...userOOOPeriods];
+      if (dueDate && allBlockingPeriods.length > 0) {
         let changed = true;
         while (changed) {
           changed = false;
-          for (const period of contact.oooPeriods) {
+          for (const period of allBlockingPeriods) {
             if (dueDate >= period.startDate && dueDate <= period.endDate) {
               dueDate = new Date(period.endDate);
               dueDate.setDate(dueDate.getDate() + 1);
