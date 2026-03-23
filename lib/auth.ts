@@ -169,6 +169,9 @@ export const getUser = cache(async () => {
   // If user doesn't exist in Prisma yet (e.g., OAuth first login), create them
   if (!user) {
     user = await syncUserToPrisma(supabaseUser);
+  } else {
+    // Ensure self-contact exists for existing users
+    await ensureSelfContact(user.id, user.name, supabaseUser.email!);
   }
 
   return user;
