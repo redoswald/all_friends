@@ -15,7 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft, ChevronRight, Plus, Plane } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Plane, Eye, EyeOff } from "lucide-react";
 import { Event, Contact, Tag } from "@prisma/client";
 import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { cn } from "@/lib/utils";
@@ -79,7 +79,6 @@ function getInitials(name: string): string {
 }
 
 function getContactColor(contact: ContactWithTags): string {
-  // Use first tag color, or default gray
   const firstTag = contact.tags[0]?.tag;
   return firstTag?.color || "#6b7280";
 }
@@ -89,11 +88,18 @@ function getTagColor(tags: { tag: Tag }[]): string {
   return firstTag?.color || "#6b7280";
 }
 
+function toDateKey(d: Date): string {
+  const dt = new Date(d);
+  dt.setHours(0, 0, 0, 0);
+  return dt.toDateString();
+}
+
 export function CalendarView({ events, contactDueDates, contacts, oooBlocks, year, month }: CalendarViewProps) {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
+  const [showOOO, setShowOOO] = useState(true);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -124,16 +130,13 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
   const startDay = firstOfMonth.getDay();
   const daysInMonth = lastOfMonth.getDate();
 
-  // Previous month days to show
   const prevMonthDays = startDay;
   const prevMonth = new Date(year, month, 0);
   const daysInPrevMonth = prevMonth.getDate();
 
-  // Build weeks array
   const weeks: { date: Date; isCurrentMonth: boolean }[][] = [];
   let currentWeek: { date: Date; isCurrentMonth: boolean }[] = [];
 
-  // Previous month overflow
   for (let i = prevMonthDays - 1; i >= 0; i--) {
     currentWeek.push({
       date: new Date(year, month - 1, daysInPrevMonth - i),
@@ -141,7 +144,6 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
     });
   }
 
-  // Current month
   for (let day = 1; day <= daysInMonth; day++) {
     if (currentWeek.length === 7) {
       weeks.push(currentWeek);
@@ -153,7 +155,6 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
     });
   }
 
-  // Next month overflow
   let nextMonthDay = 1;
   while (currentWeek.length < 7) {
     currentWeek.push({
@@ -163,7 +164,6 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
   }
   weeks.push(currentWeek);
 
-  // Add more weeks if needed (always show 6 weeks for consistency)
   while (weeks.length < 6) {
     currentWeek = [];
     for (let i = 0; i < 7; i++) {
@@ -178,7 +178,7 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
   // Group events by date string
   const eventsByDate = new Map<string, EventWithContacts[]>();
   events.forEach((event) => {
-    const dateKey = new Date(event.date).toDateString();
+    const dateKey = toDateKey(event.date);
     const existing = eventsByDate.get(dateKey) || [];
     existing.push(event);
     eventsByDate.set(dateKey, existing);
@@ -187,33 +187,78 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
   // Group due dates by date string
   const dueDatesByDate = new Map<string, ContactDueDate[]>();
   contactDueDates.forEach((contact) => {
-    const dueDate = new Date(contact.dueDate);
-    dueDate.setHours(0, 0, 0, 0);
-    const dateKey = dueDate.toDateString();
+    const dateKey = toDateKey(contact.dueDate);
     const existing = dueDatesByDate.get(dateKey) || [];
     existing.push(contact);
     dueDatesByDate.set(dateKey, existing);
   });
 
-  // Group OOO blocks by date — each block appears on every day it spans
-  const oooByDate = new Map<string, OOOBlock[]>();
-  oooBlocks.forEach((block) => {
-    const start = new Date(block.startDate);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(block.endDate);
-    end.setHours(0, 0, 0, 0);
-    const cursor = new Date(start);
-    while (cursor <= end) {
-      const dateKey = cursor.toDateString();
-      const existing = oooByDate.get(dateKey) || [];
-      // Deduplicate by block id
-      if (!existing.some((b) => b.id === block.id)) {
-        existing.push(block);
+  // Build set of dates that have self-OOO (for day cell tinting)
+  const selfOOODates = new Set<string>();
+  if (showOOO) {
+    oooBlocks.filter((b) => b.isSelf).forEach((block) => {
+      const start = new Date(block.startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(block.endDate);
+      end.setHours(0, 0, 0, 0);
+      const cursor = new Date(start);
+      while (cursor <= end) {
+        selfOOODates.add(cursor.toDateString());
+        cursor.setDate(cursor.getDate() + 1);
       }
-      oooByDate.set(dateKey, existing);
-      cursor.setDate(cursor.getDate() + 1);
-    }
-  });
+    });
+  }
+
+  // Calculate OOO bars for a given week (returns bars with column start/span)
+  function getOOOBarsForWeek(week: { date: Date; isCurrentMonth: boolean }[]) {
+    if (!showOOO || oooBlocks.length === 0) return [];
+
+    const weekStart = new Date(week[0].date);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(week[6].date);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const bars: {
+      block: OOOBlock;
+      colStart: number; // 0-indexed
+      colSpan: number;
+      isStart: boolean; // does the bar start in this week?
+      isEnd: boolean; // does the bar end in this week?
+    }[] = [];
+
+    oooBlocks.forEach((block) => {
+      const blockStart = new Date(block.startDate);
+      blockStart.setHours(0, 0, 0, 0);
+      const blockEnd = new Date(block.endDate);
+      blockEnd.setHours(0, 0, 0, 0);
+
+      // Does this block overlap this week?
+      if (blockEnd < weekStart || blockStart > weekEnd) return;
+
+      const visibleStart = blockStart < weekStart ? weekStart : blockStart;
+      const visibleEnd = blockEnd > weekEnd ? weekEnd : blockEnd;
+
+      const colStart = Math.round((visibleStart.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
+      const colEnd = Math.round((visibleEnd.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
+      const colSpan = colEnd - colStart + 1;
+
+      bars.push({
+        block,
+        colStart,
+        colSpan,
+        isStart: blockStart >= weekStart,
+        isEnd: blockEnd <= weekEnd,
+      });
+    });
+
+    // Sort: self first, then by start column
+    bars.sort((a, b) => {
+      if (a.block.isSelf !== b.block.isSelf) return a.block.isSelf ? -1 : 1;
+      return a.colStart - b.colStart;
+    });
+
+    return bars;
+  }
 
   const navigateMonth = (delta: number) => {
     let newMonth = month + delta;
@@ -250,6 +295,28 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
             </h2>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
+            {oooBlocks.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={showOOO ? "outline" : "ghost"}
+                    size="sm"
+                    onClick={() => setShowOOO(!showOOO)}
+                    className={cn(
+                      "gap-1.5",
+                      showOOO && "border-sky-300 text-sky-700"
+                    )}
+                  >
+                    {showOOO ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    <Plane className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">OOO</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {showOOO ? "Hide OOO bars" : "Show OOO bars"}
+                </TooltipContent>
+              </Tooltip>
+            )}
             <Button variant="outline" size="sm" onClick={goToToday}>
               Today
             </Button>
@@ -272,195 +339,185 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
           </div>
 
           {/* Weeks */}
-          {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="grid grid-cols-7 border-b last:border-b-0">
-              {week.map(({ date, isCurrentMonth }, dayIndex) => {
-                const dateKey = date.toDateString();
-                const dayEvents = eventsByDate.get(dateKey) || [];
-                const dayDueDates = dueDatesByDate.get(dateKey) || [];
-                const dayOOO = oooByDate.get(dateKey) || [];
-                const hasSelfOOO = dayOOO.some((b) => b.isSelf);
-                const isToday = date.toDateString() === today.toDateString();
-                const isPast = date < today;
+          {weeks.map((week, weekIndex) => {
+            const oooBars = getOOOBarsForWeek(week);
 
-                return (
-                  <div
-                    key={dayIndex}
-                    className={cn(
-                      "min-h-[60px] sm:min-h-[100px] p-0.5 sm:p-1 border-r last:border-r-0 group cursor-pointer hover:bg-gray-100 transition-colors",
-                      !isCurrentMonth && "bg-gray-50 hover:bg-gray-100",
-                      isToday && !hasSelfOOO && "bg-blue-50 hover:bg-blue-100",
-                      hasSelfOOO && "bg-purple-50 hover:bg-purple-100"
-                    )}
-                    onClick={() => handleDayClick(date)}
-                  >
-                    {/* Day number and add button */}
-                    <div className="flex items-center justify-between mb-0.5 sm:mb-1">
-                      <div
-                        className={cn(
-                          "text-xs sm:text-sm font-medium w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full",
-                          !isCurrentMonth && "text-gray-300",
-                          isToday && "bg-blue-600 text-white"
-                        )}
-                      >
-                        {date.getDate()}
-                      </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
-                        <Plus className="h-4 w-4 text-gray-300" />
-                      </div>
-                    </div>
-
-                    {/* Due dates (show before events) - hide content on very small screens, show dots instead */}
-                    {dayDueDates.length > 0 && (
-                      <>
-                        {/* Mobile: just show colored dots */}
-                        <div className="sm:hidden flex flex-wrap gap-0.5 mb-0.5">
-                          {dayDueDates.slice(0, 3).map((contact) => (
-                            <div
-                              key={contact.id}
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full",
-                                contact.isFutureDueDate
-                                  ? "bg-violet-400"
-                                  : "bg-amber-500"
-                              )}
-                            />
-                          ))}
-                          {dayDueDates.length > 3 && (
-                            <span className="text-[8px] text-gray-300">+{dayDueDates.length - 3}</span>
-                          )}
-                        </div>
-                        {/* Desktop: show full items */}
-                        <div className="hidden sm:block space-y-1 mb-1">
-                          {dayDueDates.slice(0, 2).map((contact) => (
-                            <DueDateItem
-                              key={contact.id}
-                              contact={contact}
-                              isToday={isToday}
-                            />
-                          ))}
-                          {dayDueDates.length > 2 && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="text-xs text-gray-500 px-1 cursor-pointer">
-                                  +{dayDueDates.length - 2} more
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom">
-                                <div className="space-y-1">
-                                  {dayDueDates.slice(2).map((contact) => (
-                                    <div key={contact.id} className="text-xs">
-                                      {contact.name}
-                                    </div>
-                                  ))}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    {/* OOO blocks */}
-                    {dayOOO.length > 0 && (
-                      <>
-                        {/* Mobile: purple dots */}
-                        <div className="sm:hidden flex flex-wrap gap-0.5 mb-0.5">
-                          {dayOOO.slice(0, 2).map((block) => (
-                            <div
-                              key={block.id}
-                              className="w-1.5 h-1.5 rounded-full bg-purple-400"
-                            />
-                          ))}
-                        </div>
-                        {/* Desktop: show OOO items */}
-                        <div className="hidden sm:block space-y-1 mb-1">
-                          {dayOOO.slice(0, 2).map((block) => (
-                            <Tooltip key={block.id}>
-                              <TooltipTrigger asChild>
-                                <div className={cn(
-                                  "text-xs p-1 rounded cursor-pointer truncate border-l-2",
-                                  block.isSelf
-                                    ? "bg-purple-100 text-purple-800 border-purple-500"
-                                    : "bg-purple-50 text-purple-700 border-purple-300"
-                                )}>
-                                  <div className="flex items-center gap-1">
-                                    <Plane className="h-3 w-3 flex-shrink-0" />
-                                    <span className="truncate">
-                                      {block.contactName}
-                                      {block.destination && ` → ${block.destination}`}
-                                    </span>
-                                  </div>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom">
-                                <div className="space-y-1">
-                                  <p className="font-medium">
-                                    {block.contactName} — {block.label || "Away"}
-                                  </p>
-                                  {block.destination && (
-                                    <p className="text-xs text-purple-600">→ {block.destination}</p>
-                                  )}
-                                  <p className="text-xs text-gray-500">
-                                    {new Date(block.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                    {" – "}
-                                    {new Date(block.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                                  </p>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          ))}
-                          {dayOOO.length > 2 && (
-                            <div className="text-xs text-purple-500 px-1">
-                              +{dayOOO.length - 2} more away
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-
-                    {/* Events */}
-                    {dayEvents.length > 0 && (
-                      <>
-                        {/* Mobile: just show colored dots */}
-                        <div className="sm:hidden flex flex-wrap gap-0.5">
-                          {dayEvents.slice(0, 3).map((event) => (
-                            <div
-                              key={event.id}
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full",
-                                isPast ? "bg-gray-300" : "bg-blue-500"
-                              )}
-                              onClick={(e) => handleEventClick(event, e)}
-                            />
-                          ))}
-                          {dayEvents.length > 3 && (
-                            <span className="text-[8px] text-gray-300">+{dayEvents.length - 3}</span>
-                          )}
-                        </div>
-                        {/* Desktop: show full items */}
-                        <div className="hidden sm:block space-y-1">
-                          {dayEvents.slice(0, 3).map((event) => (
-                            <EventItem
-                              key={event.id}
-                              event={event}
-                              isPast={isPast}
-                              onClick={(e) => handleEventClick(event, e)}
-                            />
-                          ))}
-                          {dayEvents.length > 3 && (
-                            <div className="text-xs text-gray-500 px-1">
-                              +{dayEvents.length - 3} more
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
+            return (
+              <div key={weekIndex} className="border-b last:border-b-0">
+                {/* OOO bars row */}
+                {oooBars.length > 0 && (
+                  <div className="grid grid-cols-7 relative">
+                    {oooBars.map((bar) => (
+                      <Tooltip key={bar.block.id}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={cn(
+                              "h-5 flex items-center gap-1 px-1.5 text-[10px] sm:text-xs font-medium cursor-pointer truncate",
+                              bar.block.isSelf
+                                ? "bg-sky-200 text-sky-900"
+                                : "bg-sky-100 text-sky-800",
+                              bar.isStart && "rounded-l-sm ml-0.5",
+                              bar.isEnd && "rounded-r-sm mr-0.5",
+                            )}
+                            style={{
+                              gridColumn: `${bar.colStart + 1} / span ${bar.colSpan}`,
+                            }}
+                          >
+                            <Plane className="h-3 w-3 flex-shrink-0 hidden sm:block" />
+                            <span className="truncate">
+                              {bar.block.contactName}
+                              {bar.block.destination && ` → ${bar.block.destination}`}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          <div className="space-y-1">
+                            <p className="font-medium">
+                              {bar.block.contactName} — {bar.block.label || "Away"}
+                            </p>
+                            {bar.block.destination && (
+                              <p className="text-xs text-sky-600">→ {bar.block.destination}</p>
+                            )}
+                            <p className="text-xs text-gray-500">
+                              {new Date(bar.block.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                              {" – "}
+                              {new Date(bar.block.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          ))}
+                )}
+
+                {/* Day cells */}
+                <div className="grid grid-cols-7">
+                  {week.map(({ date, isCurrentMonth }, dayIndex) => {
+                    const dateKey = date.toDateString();
+                    const dayEvents = eventsByDate.get(dateKey) || [];
+                    const dayDueDates = dueDatesByDate.get(dateKey) || [];
+                    const hasSelfOOO = selfOOODates.has(dateKey);
+                    const isToday = date.toDateString() === today.toDateString();
+                    const isPast = date < today;
+
+                    return (
+                      <div
+                        key={dayIndex}
+                        className={cn(
+                          "min-h-[60px] sm:min-h-[100px] p-0.5 sm:p-1 border-r last:border-r-0 group cursor-pointer hover:bg-gray-100 transition-colors",
+                          !isCurrentMonth && "bg-gray-50 hover:bg-gray-100",
+                          isToday && !hasSelfOOO && "bg-blue-50 hover:bg-blue-100",
+                          hasSelfOOO && "bg-sky-50/50 hover:bg-sky-100/50"
+                        )}
+                        onClick={() => handleDayClick(date)}
+                      >
+                        {/* Day number and add button */}
+                        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                          <div
+                            className={cn(
+                              "text-xs sm:text-sm font-medium w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full",
+                              !isCurrentMonth && "text-gray-300",
+                              isToday && "bg-blue-600 text-white"
+                            )}
+                          >
+                            {date.getDate()}
+                          </div>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
+                            <Plus className="h-4 w-4 text-gray-300" />
+                          </div>
+                        </div>
+
+                        {/* Due dates */}
+                        {dayDueDates.length > 0 && (
+                          <>
+                            <div className="sm:hidden flex flex-wrap gap-0.5 mb-0.5">
+                              {dayDueDates.slice(0, 3).map((contact) => (
+                                <div
+                                  key={contact.id}
+                                  className={cn(
+                                    "w-1.5 h-1.5 rounded-full",
+                                    contact.isFutureDueDate
+                                      ? "bg-violet-400"
+                                      : "bg-amber-500"
+                                  )}
+                                />
+                              ))}
+                              {dayDueDates.length > 3 && (
+                                <span className="text-[8px] text-gray-300">+{dayDueDates.length - 3}</span>
+                              )}
+                            </div>
+                            <div className="hidden sm:block space-y-1 mb-1">
+                              {dayDueDates.slice(0, 2).map((contact) => (
+                                <DueDateItem
+                                  key={contact.id}
+                                  contact={contact}
+                                  isToday={isToday}
+                                />
+                              ))}
+                              {dayDueDates.length > 2 && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="text-xs text-gray-500 px-1 cursor-pointer">
+                                      +{dayDueDates.length - 2} more
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="bottom">
+                                    <div className="space-y-1">
+                                      {dayDueDates.slice(2).map((contact) => (
+                                        <div key={contact.id} className="text-xs">
+                                          {contact.name}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </>
+                        )}
+
+                        {/* Events */}
+                        {dayEvents.length > 0 && (
+                          <>
+                            <div className="sm:hidden flex flex-wrap gap-0.5">
+                              {dayEvents.slice(0, 3).map((event) => (
+                                <div
+                                  key={event.id}
+                                  className={cn(
+                                    "w-1.5 h-1.5 rounded-full",
+                                    isPast ? "bg-gray-300" : "bg-blue-500"
+                                  )}
+                                  onClick={(e) => handleEventClick(event, e)}
+                                />
+                              ))}
+                              {dayEvents.length > 3 && (
+                                <span className="text-[8px] text-gray-300">+{dayEvents.length - 3}</span>
+                              )}
+                            </div>
+                            <div className="hidden sm:block space-y-1">
+                              {dayEvents.slice(0, 3).map((event) => (
+                                <EventItem
+                                  key={event.id}
+                                  event={event}
+                                  isPast={isPast}
+                                  onClick={(e) => handleEventClick(event, e)}
+                                />
+                              ))}
+                              {dayEvents.length > 3 && (
+                                <div className="text-xs text-gray-500 px-1">
+                                  +{dayEvents.length - 3} more
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Add Event Dialog */}
@@ -526,7 +583,6 @@ function EventItem({ event, isPast, onClick }: EventItemProps) {
           )}
         >
           <div className="flex items-center gap-1">
-            {/* Contact initials */}
             <div className="flex -space-x-1">
               {event.contacts.slice(0, 3).map(({ contact }) => (
                 <span
