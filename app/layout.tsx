@@ -26,6 +26,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script defer src="https://umami.aaronos.ai/script.js" data-website-id="25b0f0f5-a75a-4d88-9ad2-912441528540"></script>
+      </head>
       <body
         className={`${dmSans.variable} ${geistMono.variable} antialiased font-sans`}
       >
