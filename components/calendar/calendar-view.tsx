@@ -112,6 +112,21 @@ export function CalendarView({ events, contactDueDates, contacts, selfContact, o
   const [creatingOOODate, setCreatingOOODate] = useState<Date | null>(null);
   const [creatingOOOSelf, setCreatingOOOSelf] = useState(false);
   const [showOOO, setShowOOO] = useState(true);
+  const [expandedOOOWeeks, setExpandedOOOWeeks] = useState<Set<number>>(new Set());
+
+  const MAX_VISIBLE_OOO_BARS = 3;
+
+  const toggleOOOWeekExpand = (weekIndex: number) => {
+    setExpandedOOOWeeks((prev) => {
+      const next = new Set(prev);
+      if (next.has(weekIndex)) {
+        next.delete(weekIndex);
+      } else {
+        next.add(weekIndex);
+      }
+      return next;
+    });
+  };
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -357,9 +372,17 @@ export function CalendarView({ events, contactDueDates, contacts, selfContact, o
             return (
               <div key={weekIndex} className="border-b last:border-b-0">
                 {/* OOO bars row */}
-                {oooBars.length > 0 && (
+                {oooBars.length > 0 && (() => {
+                  const isExpanded = expandedOOOWeeks.has(weekIndex);
+                  const needsCollapse = oooBars.length > MAX_VISIBLE_OOO_BARS;
+                  const visibleBars = needsCollapse && !isExpanded
+                    ? oooBars.slice(0, MAX_VISIBLE_OOO_BARS - 1)
+                    : oooBars;
+                  const hiddenCount = oooBars.length - visibleBars.length;
+
+                  return (
                   <div className="grid grid-cols-7 relative">
-                    {oooBars.map((bar) => (
+                    {visibleBars.map((bar) => (
                       <Tooltip key={bar.block.id}>
                         <TooltipTrigger asChild>
                           <div
@@ -400,8 +423,38 @@ export function CalendarView({ events, contactDueDates, contacts, selfContact, o
                         </TooltipContent>
                       </Tooltip>
                     ))}
+                    {needsCollapse && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="h-5 flex items-center gap-1 px-1.5 text-[10px] sm:text-xs font-medium cursor-pointer truncate bg-sky-50 text-sky-600 hover:bg-sky-100 transition-colors rounded-sm mx-0.5"
+                            style={{ gridColumn: "1 / span 7" }}
+                            onClick={() => toggleOOOWeekExpand(weekIndex)}
+                          >
+                            <Plane className="h-3 w-3 flex-shrink-0 hidden sm:block" />
+                            {isExpanded
+                              ? "Show less"
+                              : `+${hiddenCount} more away`
+                            }
+                          </div>
+                        </TooltipTrigger>
+                        {!isExpanded && (
+                          <TooltipContent side="bottom">
+                            <div className="space-y-1">
+                              {oooBars.slice(MAX_VISIBLE_OOO_BARS - 1).map((bar) => (
+                                <p key={bar.block.id} className="text-xs">
+                                  {bar.block.contactName}
+                                  {bar.block.destination && ` → ${bar.block.destination}`}
+                                </p>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    )}
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* Day cells */}
                 <div className="grid grid-cols-7">
