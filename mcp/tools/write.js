@@ -456,4 +456,143 @@ export function registerWriteTools(server, supabase, userId) {
       };
     }
   );
+
+  // ─── update_event ───────────────────────────────────────────
+  server.tool(
+    "update_event",
+    "Update an existing event's details — title, notes, location, date, event type, or contacts. Use when the user wants to fix or enrich an event, like 'add notes to that coffee with Alex', 'we were at Zaytinya', or 'change the date to last Thursday.' You need the event ID (returned by get_contact_detail, get_upcoming, or log_event).",
+    {
+      event_id: z.string().describe("Event ID to update"),
+      title: z.string().nullable().optional().describe("New title"),
+      notes: z.string().nullable().optional().describe("New notes"),
+      location: z.string().nullable().optional().describe("New location"),
+      date: z.string().optional().describe("New date (ISO format)"),
+      event_type: z.string().optional().describe("HANGOUT, CALL, MESSAGE, EVENT, OTHER"),
+      contact_names: z.array(z.string()).optional().describe("Replace contacts (fuzzy matched). Omit to keep existing."),
+    },
+    async (params) => {
+      // Verify event exists and belongs to user
+      const { data: existing } = await supabase
+        .from("Event")
+        .select("id, title, date, eventType, notes, location, userId")
+        .eq("id", params.event_id)
+        .single();
+
+      if (!existing || existing.userId !== userId) {
+        return {
+          content: [{ type: "text", text: JSON.stringify({ error: "Event not found" }) }],
+        };
+      }
+
+      // Build update
+      const updateData = {};
+      if (params.title !== undefined) updateData.title = params.title;
+      if (params.notes !== undefined) updateData.notes = params.notes;
+      if (params.location !== undefined) updateData.location = params.location;
+      if (params.event_type !== undefined) updateData.eventType = params.event_type;
+      if (params.date !== undefined) {
+        updateData.date = parseLocalDateToUTC(params.date).toISOString();
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        const { error } = await supabase
+          .from("Event")
+          .update(updateData)
+          .eq("id", params.event_id);
+        if (error) throw error;
+      }
+
+      // Replace contacts if provided
+      const warnings = [];
+      if (params.contact_names) {
+        const { matched, warnings: matchWarnings } = await resolveContactNames(
+          supabase,
+          userId,
+          params.contact_names
+        );
+        warnings.push(...matchWarnings);
+
+        if (matched.length > 0) {
+          // Delete existing links
+          await supabase
+            .from("EventContact")
+            .delete()
+            .eq("eventId", params.event_id);
+
+          // Insert new links
+          await supabase
+            .from("EventContact")
+            .insert(matched.map((m) => ({ eventId: params.event_id, contactId: m.id })));
+        }
+      }
+
+      // Re-fetch updated event
+      const { data: updated } = await supabase
+        .from("Event")
+        .select("id, title, date, eventType, notes, location, EventContact(contact:contactId(name))")
+        .eq("id", params.event_id)
+        .single();
+
+      const result = {
+        event: {
+          id: updated.id,
+          title: updated.title,
+          date: formatDateForOutput(updated.date),
+          eventType: updated.eventType,
+          notes: updated.notes,
+          location: updated.location,
+          contacts: (updated.EventContact || []).map((ec) => ec.contact?.name).filter(Boolean),
+        },
+        warnings,
+      };
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    }
+  );
+
+  // ─── delete_event ───────────────────────────────────────────
+  server.tool(
+    "delete_event",
+    "Delete an event. Use when the user says something like 'delete that event', 'that was a mistake, remove it', or 'cancel the dinner with Alex.' Requires the event ID. This also removes associated action items.",
+    {
+      event_id: z.string().describe("Event ID to delete"),
+    },
+    async (params) => {
+      // Verify event exists and belongs to user
+      const { data: existing } = await supabase
+        .from("Event")
+        .select("id, title, userId, EventContact(contact:contactId(name))")
+        .eq("id", params.event_id)
+        .single();
+
+      if (!existing || existing.userId !== userId) {
+        return {
+          content: [{ type: "text", text: JSON.stringify({ error: "Event not found" }) }],
+        };
+      }
+
+      // Delete (cascades to EventContact and ActionItem)
+      const { error } = await supabase
+        .from("Event")
+        .delete()
+        .eq("id", params.event_id);
+
+      if (error) throw error;
+
+      const result = {
+        deleted: true,
+        event: {
+          id: existing.id,
+          title: existing.title,
+          contacts: (existing.EventContact || []).map((ec) => ec.contact?.name).filter(Boolean),
+        },
+      };
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    }
+  );
 }
