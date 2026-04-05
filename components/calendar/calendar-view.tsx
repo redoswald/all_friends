@@ -15,13 +15,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft, ChevronRight, Plus, Plane, Eye, EyeOff } from "lucide-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { ChevronLeft, ChevronRight, Plus, Plane, Eye, EyeOff, Calendar as CalendarIcon } from "lucide-react";
 import { Event, Contact, Tag } from "@prisma/client";
 import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { cn } from "@/lib/utils";
 import { LogEventForm } from "@/components/events/log-event-form";
 import { EditEventForm } from "@/components/events/edit-event-form";
 import { EditOOODialog } from "@/components/calendar/edit-ooo-dialog";
+import { CreateOOODialog } from "@/components/calendar/create-ooo-dialog";
 import { formatDateForInput } from "@/lib/date-utils";
 
 interface ContactWithTags extends Contact {
@@ -101,6 +108,7 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
   const [editingOOO, setEditingOOO] = useState<OOOBlock | null>(null);
+  const [creatingOOODate, setCreatingOOODate] = useState<Date | null>(null);
   const [showOOO, setShowOOO] = useState(true);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -404,8 +412,9 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
                     const isPast = date < today;
 
                     return (
+                      <ContextMenu key={dayIndex}>
+                        <ContextMenuTrigger asChild>
                       <div
-                        key={dayIndex}
                         className={cn(
                           "min-h-[60px] sm:min-h-[100px] p-0.5 sm:p-1 border-r last:border-r-0 group cursor-pointer hover:bg-gray-100 transition-colors",
                           !isCurrentMonth && "bg-gray-50 hover:bg-gray-100",
@@ -515,6 +524,18 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
                           </>
                         )}
                       </div>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                          <ContextMenuItem onClick={() => handleDayClick(date)}>
+                            <CalendarIcon className="h-4 w-4 mr-2" />
+                            {isPast ? "Log" : "Plan"} Event
+                          </ContextMenuItem>
+                          <ContextMenuItem onClick={() => setCreatingOOODate(date)}>
+                            <Plane className="h-4 w-4 mr-2" />
+                            {isPast ? "Log" : "Plan"} OOO
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
                     );
                   })}
                 </div>
@@ -566,6 +587,15 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
         <EditOOODialog
           oooBlock={editingOOO}
           onOpenChange={(open) => { if (!open) setEditingOOO(null); }}
+        />
+
+        {/* Create OOO Dialog */}
+        <CreateOOODialog
+          open={!!creatingOOODate}
+          onOpenChange={(open) => { if (!open) setCreatingOOODate(null); }}
+          contacts={contacts}
+          defaultStartDate={creatingOOODate ?? undefined}
+          isPast={creatingOOODate ? creatingOOODate < today : false}
         />
       </div>
     </TooltipProvider>
