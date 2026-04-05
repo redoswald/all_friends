@@ -47,6 +47,7 @@ export const createEventSchema = z.object({
   date: z.string().transform(parseLocalDateToUTC),
   eventType: z.enum(["HANGOUT", "CALL", "MESSAGE", "EVENT", "OTHER"]).optional(),
   notes: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
   contactIds: z.array(z.string()).optional().default([]),
   newContactNames: z.array(z.string()).optional().default([]),
 }).refine(
@@ -59,6 +60,7 @@ export const updateEventSchema = z.object({
   date: z.string().transform(parseLocalDateToUTC).optional(),
   eventType: z.enum(["HANGOUT", "CALL", "MESSAGE", "EVENT", "OTHER"]).optional(),
   notes: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
   contactIds: z.array(z.string()).optional(),
   newContactNames: z.array(z.string()).optional().default([]),
 });

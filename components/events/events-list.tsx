@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Calendar, MapPin, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState } from "@/components/empty-state";
@@ -111,6 +111,12 @@ export function EventsList({ events, contacts }: EventsListProps) {
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
                           {formatDate(event.date)}
+                          {event.location && (
+                            <span className="inline-flex items-center gap-0.5 ml-2">
+                              <MapPin className="h-3 w-3" />
+                              {event.location}
+                            </span>
+                          )}
                         </p>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {event.contacts.map(({ contact }) => {

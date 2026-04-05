@@ -101,7 +101,8 @@ model Event {
   // Event type stored as string: HANGOUT, CALL, MESSAGE, EVENT, OTHER
   eventType String @default("HANGOUT")
 
-  notes String?
+  notes    String?
+  location String?
 
   // Calendar integration (Phase 3+)
   externalId     String?

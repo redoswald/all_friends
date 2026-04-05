@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
+import { X, Plus, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { EVENT_TYPE_LABELS } from "@/types";
 import { getTodayForInput } from "@/lib/date-utils";
@@ -47,6 +47,14 @@ export function LogEventForm({
     })
   );
   const [searchTerm, setSearchTerm] = useState("");
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/events/locations")
+      .then((res) => res.ok ? res.json() : [])
+      .then(setLocationSuggestions)
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -72,6 +80,7 @@ export function LogEventForm({
       date: formData.get("date") as string,
       eventType: formData.get("eventType") as string,
       notes: (formData.get("notes") as string) || null,
+      location: (formData.get("location") as string) || null,
       contactIds: existingContactIds,
       newContactNames: newContactNames,
     };
@@ -223,6 +232,26 @@ export function LogEventForm({
           name="title"
           placeholder="e.g., Dinner at Zaytinya"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="location" className="flex items-center gap-1">
+          <MapPin className="h-3.5 w-3.5" />
+          Location (optional)
+        </Label>
+        <Input
+          id="location"
+          name="location"
+          list="location-suggestions"
+          placeholder="e.g., Zaytinya, Penn Quarter"
+        />
+        {locationSuggestions.length > 0 && (
+          <datalist id="location-suggestions">
+            {locationSuggestions.map((loc) => (
+              <option key={loc} value={loc} />
+            ))}
+          </datalist>
+        )}
       </div>
 
       <div className="space-y-2">
