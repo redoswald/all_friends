@@ -16,6 +16,8 @@ const bulkUpdateSchema = z.object({
     ]).optional(),
     cadenceDays: z.number().int().positive().nullable().optional(),
     isArchived: z.boolean().optional(),
+    metroArea: z.string().nullable().optional(),
+    location: z.string().nullable().optional(),
   }),
 });
 
@@ -50,6 +52,12 @@ export async function POST(request: NextRequest) {
     }
     if (updates.isArchived !== undefined) {
       updateData.isArchived = updates.isArchived;
+    }
+    if (updates.metroArea !== undefined) {
+      updateData.metroArea = updates.metroArea;
+    }
+    if (updates.location !== undefined) {
+      updateData.location = updates.location;
     }
 
     // Update all contacts

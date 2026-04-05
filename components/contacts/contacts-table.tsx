@@ -37,7 +37,7 @@ import { Contact, Tag } from "@prisma/client";
 import { FunnelStage } from "@/types";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
-import { ArrowUp, ArrowDown, ArrowUpDown, Tags, X, Plus, Minus, Users, Clock, Archive } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Tags, X, Plus, Minus, Users, Clock, Archive, MapPin, Columns3 } from "lucide-react";
 
 interface ContactWithDerived extends Contact {
   tags: { tag: Tag }[];
@@ -50,8 +50,36 @@ interface ContactsTableProps {
   tags: Tag[];
 }
 
-type SortColumn = "name" | "tags" | "stage" | "cadence" | "lastSeen" | "status";
+type SortColumn = "name" | "tags" | "stage" | "cadence" | "lastSeen" | "status" | "location";
 type SortDirection = "asc" | "desc";
+
+type ColumnKey = "tags" | "stage" | "cadence" | "lastSeen" | "status" | "location";
+
+const COLUMN_DEFINITIONS: { key: ColumnKey; label: string; defaultVisible: boolean }[] = [
+  { key: "tags", label: "Tags", defaultVisible: true },
+  { key: "stage", label: "Stage", defaultVisible: true },
+  { key: "cadence", label: "Cadence", defaultVisible: true },
+  { key: "lastSeen", label: "Last Seen", defaultVisible: true },
+  { key: "status", label: "Status", defaultVisible: true },
+  { key: "location", label: "Location", defaultVisible: false },
+];
+
+const DEFAULT_VISIBLE_COLUMNS = new Set(
+  COLUMN_DEFINITIONS.filter((c) => c.defaultVisible).map((c) => c.key)
+);
+
+function loadVisibleColumns(): Set<ColumnKey> {
+  if (typeof window === "undefined") return DEFAULT_VISIBLE_COLUMNS;
+  try {
+    const stored = localStorage.getItem("contacts-visible-columns");
+    if (stored) return new Set(JSON.parse(stored));
+  } catch {}
+  return DEFAULT_VISIBLE_COLUMNS;
+}
+
+function saveVisibleColumns(columns: Set<ColumnKey>) {
+  localStorage.setItem("contacts-visible-columns", JSON.stringify([...columns]));
+}
 
 // Define stage order for sorting
 const STAGE_ORDER: Record<string, number> = {
@@ -71,6 +99,24 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [customCadenceOpen, setCustomCadenceOpen] = useState(false);
   const [customCadenceValue, setCustomCadenceValue] = useState("");
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [locationValue, setLocationValue] = useState("");
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(loadVisibleColumns);
+
+  const isColumnVisible = (key: ColumnKey) => visibleColumns.has(key);
+
+  const toggleColumn = (key: ColumnKey) => {
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      saveVisibleColumns(next);
+      return next;
+    });
+  };
 
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
@@ -132,7 +178,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
     }
   };
 
-  const handleBulkUpdate = async (updates: { funnelStage?: string; cadenceDays?: number | null; isArchived?: boolean }) => {
+  const handleBulkUpdate = async (updates: { funnelStage?: string; cadenceDays?: number | null; isArchived?: boolean; metroArea?: string | null; location?: string | null }) => {
     if (selectedIds.size === 0) return;
 
     setIsUpdating(true);
@@ -169,6 +215,14 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
       handleBulkUpdate({ cadenceDays: days });
       setCustomCadenceOpen(false);
       setCustomCadenceValue("");
+    }
+  };
+
+  const handleLocationSubmit = () => {
+    if (locationValue.trim()) {
+      handleBulkUpdate({ metroArea: locationValue.trim() });
+      setLocationOpen(false);
+      setLocationValue("");
     }
   };
 
@@ -221,6 +275,14 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
           if (comparison === 0 && a.status.daysUntilDue !== null && b.status.daysUntilDue !== null) {
             comparison = (a.status.daysUntilDue ?? 0) - (b.status.daysUntilDue ?? 0);
           }
+          break;
+        case "location":
+          const aLoc = a.metroArea || a.location || "";
+          const bLoc = b.metroArea || b.location || "";
+          if (!aLoc && !bLoc) comparison = 0;
+          else if (!aLoc) comparison = 1;
+          else if (!bLoc) comparison = -1;
+          else comparison = aLoc.localeCompare(bLoc);
           break;
       }
 
@@ -444,6 +506,54 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
               </PopoverContent>
             </Popover>
 
+            {/* Location popover */}
+            <Popover open={locationOpen} onOpenChange={setLocationOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" disabled={isUpdating}>
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Location
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="start">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="bulkLocation">Metro area</Label>
+                    <Input
+                      id="bulkLocation"
+                      placeholder="e.g. DC, NYC, Bay Area"
+                      value={locationValue}
+                      onChange={(e) => setLocationValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleLocationSubmit();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setLocationOpen(false);
+                        setLocationValue("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleLocationSubmit}
+                      disabled={!locationValue.trim()}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {/* Archive button */}
             <Button
               variant="outline"
@@ -543,7 +653,34 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block border rounded-lg">
+      <div className="hidden md:block">
+        <div className="flex justify-end mb-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Columns3 className="h-4 w-4 mr-2" />
+                Columns
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48" align="end">
+              <div className="space-y-1">
+                {COLUMN_DEFINITIONS.map((col) => (
+                  <label
+                    key={col.key}
+                    className="flex items-center gap-2 px-1 py-1 rounded hover:bg-gray-50 cursor-pointer text-sm"
+                  >
+                    <Checkbox
+                      checked={isColumnVisible(col.key)}
+                      onCheckedChange={() => toggleColumn(col.key)}
+                    />
+                    {col.label}
+                  </label>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
@@ -560,11 +697,12 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                 />
               </TableHead>
               <SortableHeader column="name" className="w-[250px]">Name</SortableHeader>
-              <SortableHeader column="tags">Tags</SortableHeader>
-              <SortableHeader column="stage">Stage</SortableHeader>
-              <SortableHeader column="cadence">Cadence</SortableHeader>
-              <SortableHeader column="lastSeen">Last Seen</SortableHeader>
-              <SortableHeader column="status" className="justify-end">Status</SortableHeader>
+              {isColumnVisible("tags") && <SortableHeader column="tags">Tags</SortableHeader>}
+              {isColumnVisible("stage") && <SortableHeader column="stage">Stage</SortableHeader>}
+              {isColumnVisible("cadence") && <SortableHeader column="cadence">Cadence</SortableHeader>}
+              {isColumnVisible("lastSeen") && <SortableHeader column="lastSeen">Last Seen</SortableHeader>}
+              {isColumnVisible("location") && <SortableHeader column="location">Location</SortableHeader>}
+              {isColumnVisible("status") && <SortableHeader column="status" className="justify-end">Status</SortableHeader>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -593,6 +731,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                     )}
                   </Link>
                 </TableCell>
+              {isColumnVisible("tags") && (
               <TableCell>
                 <div className="flex flex-wrap gap-1">
                   {contact.tags.map(({ tag }) => (
@@ -611,15 +750,28 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                   ))}
                 </div>
               </TableCell>
+              )}
+              {isColumnVisible("stage") && (
               <TableCell className="text-sm text-gray-700">
                 {FUNNEL_STAGE_LABELS[contact.funnelStage as FunnelStage]}
               </TableCell>
+              )}
+              {isColumnVisible("cadence") && (
               <TableCell className="text-sm text-gray-700">
                 {getCadenceLabel(contact.cadenceDays)}
               </TableCell>
+              )}
+              {isColumnVisible("lastSeen") && (
               <TableCell className="text-sm text-gray-700">
                 {formatLastSeen(contact.lastEventDate, contact.status.daysSinceLastEvent)}
               </TableCell>
+              )}
+              {isColumnVisible("location") && (
+              <TableCell className="text-sm text-gray-700">
+                {contact.metroArea || contact.location || "—"}
+              </TableCell>
+              )}
+              {isColumnVisible("status") && (
               <TableCell className="text-right">
                 {contact.cadenceDays ? (
                   <Badge
@@ -648,10 +800,12 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
                   <span className="text-sm text-gray-300">—</span>
                 )}
               </TableCell>
+              )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        </div>
       </div>
     </div>
   );
