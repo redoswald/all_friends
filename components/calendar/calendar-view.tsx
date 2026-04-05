@@ -21,6 +21,7 @@ import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { cn } from "@/lib/utils";
 import { LogEventForm } from "@/components/events/log-event-form";
 import { EditEventForm } from "@/components/events/edit-event-form";
+import { EditOOODialog } from "@/components/calendar/edit-ooo-dialog";
 import { formatDateForInput } from "@/lib/date-utils";
 
 interface ContactWithTags extends Contact {
@@ -99,6 +100,7 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
+  const [editingOOO, setEditingOOO] = useState<OOOBlock | null>(null);
   const [showOOO, setShowOOO] = useState(true);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -352,7 +354,7 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
                         <TooltipTrigger asChild>
                           <div
                             className={cn(
-                              "h-5 flex items-center gap-1 px-1.5 text-[10px] sm:text-xs font-medium cursor-pointer truncate",
+                              "h-5 flex items-center gap-1 px-1.5 text-[10px] sm:text-xs font-medium cursor-pointer truncate hover:brightness-95 transition-all",
                               bar.block.isSelf
                                 ? "bg-sky-200 text-sky-900"
                                 : "bg-sky-100 text-sky-800",
@@ -362,6 +364,7 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
                             style={{
                               gridColumn: `${bar.colStart + 1} / span ${bar.colSpan}`,
                             }}
+                            onClick={() => setEditingOOO(bar.block)}
                           >
                             <Plane className="h-3 w-3 flex-shrink-0 hidden sm:block" />
                             <span className="truncate">
@@ -558,6 +561,12 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Edit OOO Dialog */}
+        <EditOOODialog
+          oooBlock={editingOOO}
+          onOpenChange={(open) => { if (!open) setEditingOOO(null); }}
+        />
       </div>
     </TooltipProvider>
   );
