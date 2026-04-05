@@ -65,6 +65,7 @@ interface CalendarViewProps {
   events: EventWithContacts[];
   contactDueDates: ContactDueDate[];
   contacts: { id: string; name: string }[];
+  selfContact: { id: string; name: string } | null;
   oooBlocks: OOOBlock[];
   year: number;
   month: number;
@@ -102,13 +103,14 @@ function toDateKey(d: Date): string {
   return dt.toDateString();
 }
 
-export function CalendarView({ events, contactDueDates, contacts, oooBlocks, year, month }: CalendarViewProps) {
+export function CalendarView({ events, contactDueDates, contacts, selfContact, oooBlocks, year, month }: CalendarViewProps) {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editingEvent, setEditingEvent] = useState<EventWithContacts | null>(null);
   const [editingOOO, setEditingOOO] = useState<OOOBlock | null>(null);
   const [creatingOOODate, setCreatingOOODate] = useState<Date | null>(null);
+  const [creatingOOOSelf, setCreatingOOOSelf] = useState(false);
   const [showOOO, setShowOOO] = useState(true);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -530,10 +532,22 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
                             <CalendarIcon className="h-4 w-4 mr-2" />
                             {isPast ? "Log" : "Plan"} Event
                           </ContextMenuItem>
-                          <ContextMenuItem onClick={() => setCreatingOOODate(date)}>
+                          <ContextMenuItem onClick={() => {
+                            setCreatingOOOSelf(false);
+                            setCreatingOOODate(date);
+                          }}>
                             <Plane className="h-4 w-4 mr-2" />
                             {isPast ? "Log" : "Plan"} OOO
                           </ContextMenuItem>
+                          {selfContact && (
+                            <ContextMenuItem onClick={() => {
+                              setCreatingOOOSelf(true);
+                              setCreatingOOODate(date);
+                            }}>
+                              <Plane className="h-4 w-4 mr-2" />
+                              {isPast ? "Log" : "Plan"} OOO (self)
+                            </ContextMenuItem>
+                          )}
                         </ContextMenuContent>
                       </ContextMenu>
                     );
@@ -592,9 +606,11 @@ export function CalendarView({ events, contactDueDates, contacts, oooBlocks, yea
         {/* Create OOO Dialog */}
         <CreateOOODialog
           open={!!creatingOOODate}
-          onOpenChange={(open) => { if (!open) setCreatingOOODate(null); }}
+          onOpenChange={(open) => { if (!open) { setCreatingOOODate(null); setCreatingOOOSelf(false); } }}
           contacts={contacts}
+          selfContact={selfContact}
           defaultStartDate={creatingOOODate ?? undefined}
+          defaultSelf={creatingOOOSelf}
           isPast={creatingOOODate ? creatingOOODate < today : false}
         />
       </div>

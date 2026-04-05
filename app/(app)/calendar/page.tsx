@@ -64,6 +64,8 @@ async function getCalendarData(year: number, month: number) {
   const selfContact = await prisma.contact.findFirst({
     where: { userId: user.id, isSelf: true },
     select: {
+      id: true,
+      name: true,
       oooPeriods: { orderBy: { startDate: "asc" } },
     },
   });
@@ -182,7 +184,9 @@ async function getCalendarData(year: number, month: number) {
     }))
   );
 
-  return { events, contactDueDates, allContacts, oooBlocks };
+  const selfContactInfo = selfContact ? { id: selfContact.id, name: selfContact.name } : null;
+
+  return { events, contactDueDates, allContacts, oooBlocks, selfContactInfo };
 }
 
 interface PageProps {
@@ -198,7 +202,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
   const year = params.year ? parseInt(params.year) : now.getFullYear();
   const month = params.month ? parseInt(params.month) : now.getMonth();
 
-  const { events, contactDueDates, allContacts, oooBlocks } = await getCalendarData(year, month);
+  const { events, contactDueDates, allContacts, oooBlocks, selfContactInfo } = await getCalendarData(year, month);
 
   return (
     <div className="space-y-6">
@@ -207,6 +211,7 @@ export default async function CalendarPage({ searchParams }: PageProps) {
         events={events}
         contactDueDates={contactDueDates}
         contacts={allContacts}
+        selfContact={selfContactInfo}
         oooBlocks={oooBlocks}
         year={year}
         month={month}
