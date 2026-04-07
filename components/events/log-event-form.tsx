@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionInput } from "@/components/events/mention-input";
 import {
   Select,
   SelectContent,
@@ -256,11 +256,12 @@ export function LogEventForm({
 
       <div className="space-y-2">
         <Label htmlFor="notes">Notes (optional)</Label>
-        <Textarea
+        <MentionInput
           id="notes"
           name="notes"
-          placeholder="What did you talk about?"
+          placeholder="What did you talk about? Use @ to mention contacts"
           rows={3}
+          contacts={contacts}
         />
       </div>
 

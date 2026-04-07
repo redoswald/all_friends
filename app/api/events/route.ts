@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { createEventSchema } from "@/lib/validations";
+import { extractMentionedContactIds } from "@/lib/mentions";
 
 export async function GET(request: NextRequest) {
   try {
@@ -108,6 +109,22 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Sync mentions from notes
+    if (event.notes) {
+      const mentionedIds = extractMentionedContactIds(event.notes);
+      if (mentionedIds.length > 0) {
+        const validMentioned = await prisma.contact.findMany({
+          where: { id: { in: mentionedIds }, userId: user.id },
+          select: { id: true },
+        });
+        if (validMentioned.length > 0) {
+          await prisma.eventMention.createMany({
+            data: validMentioned.map((c) => ({ eventId: event.id, contactId: c.id })),
+          });
+        }
+      }
+    }
 
     return NextResponse.json(event, { status: 201 });
   } catch (error) {

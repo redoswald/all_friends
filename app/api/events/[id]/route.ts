@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { updateEventSchema } from "@/lib/validations";
+import { extractMentionedContactIds } from "@/lib/mentions";
 
 export async function PATCH(
   request: NextRequest,
@@ -71,7 +72,7 @@ export async function PATCH(
       }
 
       // Update event
-      return tx.event.update({
+      const updated = await tx.event.update({
         where: { id },
         data: eventData,
         include: {
@@ -80,6 +81,27 @@ export async function PATCH(
           },
         },
       });
+
+      // Sync mentions from notes
+      if (eventData.notes !== undefined) {
+        await tx.eventMention.deleteMany({ where: { eventId: id } });
+        if (eventData.notes) {
+          const mentionedIds = extractMentionedContactIds(eventData.notes as string);
+          if (mentionedIds.length > 0) {
+            const validMentioned = await tx.contact.findMany({
+              where: { id: { in: mentionedIds }, userId: user.id },
+              select: { id: true },
+            });
+            if (validMentioned.length > 0) {
+              await tx.eventMention.createMany({
+                data: validMentioned.map((c) => ({ eventId: id, contactId: c.id })),
+              });
+            }
+          }
+        }
+      }
+
+      return updated;
     });
 
     return NextResponse.json(event);

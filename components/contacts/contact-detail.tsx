@@ -31,6 +31,7 @@ import { EditContactForm } from "./edit-contact-form";
 import { LogEventForm } from "@/components/events/log-event-form";
 import { EditEventForm } from "@/components/events/edit-event-form";
 import { SetAwayDialog } from "./set-away-dialog";
+import { RenderedNotes } from "@/components/events/rendered-notes";
 import { ContactFieldsSection } from "./contact-fields-section";
 import { ImportantDatesSection } from "./important-dates-section";
 import { RelationshipsSection } from "./relationships-section";
@@ -61,17 +62,28 @@ interface ContactWithRelations extends Contact {
   status: ContactStatus;
 }
 
+interface EventWithContactsRaw {
+  id: string;
+  title: string | null;
+  date: Date;
+  eventType: string;
+  notes: string | null;
+  location: string | null;
+  contacts: { contact: { id: string; name: string } }[];
+}
+
 interface ContactDetailProps {
   contact: ContactWithRelations;
   tags: Tag[];
   contacts: { id: string; name: string }[];
+  mentionedInEvents?: EventWithContactsRaw[];
 }
 
 type EventWithContacts = Event & {
   contacts: { contact: { id: string; name: string } }[];
 };
 
-export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
+export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] }: ContactDetailProps) {
   const router = useRouter();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -453,11 +465,24 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
               <CardTitle className="text-base">Event History</CardTitle>
             </CardHeader>
             <CardContent>
-              {contact.events.length === 0 ? (
-                <p className="text-gray-500 text-sm">No events logged yet.</p>
-              ) : (
+              {(() => {
+                // Merge direct events with mentioned-in events
+                const directEventIds = new Set(contact.events.map(({ event }) => event.id));
+                const mentionOnlyEvents = mentionedInEvents
+                  .filter((e) => !directEventIds.has(e.id))
+                  .map((event) => ({ event, isMention: true }));
+                const allEvents = [
+                  ...contact.events.map(({ event }) => ({ event, isMention: false })),
+                  ...mentionOnlyEvents,
+                ].sort((a, b) => new Date(b.event.date).getTime() - new Date(a.event.date).getTime());
+
+                if (allEvents.length === 0) {
+                  return <p className="text-gray-500 text-sm">No events logged yet.</p>;
+                }
+
+                return (
                 <div className="space-y-4">
-                  {contact.events.map(({ event }) => (
+                  {allEvents.map(({ event, isMention }) => (
                     <div
                       key={event.id}
                       className="flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0"
@@ -473,13 +498,18 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                           <Badge variant="outline" className="text-xs">
                             {EVENT_TYPE_LABELS[event.eventType as EventType]}
                           </Badge>
+                          {isMention && (
+                            <Badge variant="outline" className="text-xs text-teal-600 border-teal-300">
+                              Mentioned
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-gray-500">
                           {formatDate(event.date)}
                         </p>
-                        {event.contacts.length > 1 && (
+                        {event.contacts.length > (isMention ? 0 : 1) && (
                           <p className="text-sm text-gray-500">
-                            with{" "}
+                            {isMention ? "" : "with "}
                             {event.contacts
                               .filter((c) => c.contact.id !== contact.id)
                               .map((c) => c.contact.name)
@@ -487,9 +517,12 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                           </p>
                         )}
                         {event.notes && (
-                          <p className="text-sm mt-1 text-gray-700">{event.notes}</p>
+                          <p className="text-sm mt-1 text-gray-700 whitespace-pre-wrap">
+                            <RenderedNotes notes={event.notes} />
+                          </p>
                         )}
                       </div>
+                      {!isMention && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -497,7 +530,7 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => setEditingEvent(event)}>
+                          <DropdownMenuItem onSelect={() => setEditingEvent(event as any)}>
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
@@ -510,10 +543,12 @@ export function ContactDetail({ contact, tags, contacts }: ContactDetailProps) {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      )}
                     </div>
                   ))}
                 </div>
-              )}
+                );
+              })()}
             </CardContent>
           </Card>
         </div>

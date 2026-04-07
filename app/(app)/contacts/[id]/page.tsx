@@ -101,17 +101,38 @@ async function getContacts() {
   });
 }
 
+async function getMentionedInEvents(contactId: string) {
+  const user = await requireUser();
+  const mentions = await prisma.eventMention.findMany({
+    where: { contactId },
+    include: {
+      event: {
+        include: {
+          contacts: {
+            include: { contact: true },
+          },
+        },
+      },
+    },
+  });
+  // Filter to user's events and return just the events
+  return mentions
+    .filter((m) => m.event.userId === user.id)
+    .map((m) => m.event);
+}
+
 export default async function ContactPage({ params }: PageProps) {
   const { id } = await params;
-  const [contact, tags, contacts] = await Promise.all([
+  const [contact, tags, contacts, mentionedInEvents] = await Promise.all([
     getContact(id),
     getTags(),
     getContacts(),
+    getMentionedInEvents(id),
   ]);
 
   if (!contact) {
     notFound();
   }
 
-  return <ContactDetail contact={contact} tags={tags} contacts={contacts} />;
+  return <ContactDetail contact={contact} tags={tags} contacts={contacts} mentionedInEvents={mentionedInEvents} />;
 }

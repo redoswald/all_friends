@@ -64,6 +64,7 @@ model Contact {
   relationships        ContactRelationship[] @relation("ContactRelationships")
   relatedRelationships ContactRelationship[] @relation("RelatedRelationships")
   oooPeriods           ContactOOOPeriod[]
+  mentionedIn          EventMention[]
 
   @@index([userId])
 }
@@ -113,12 +114,22 @@ model Event {
 
   contacts    EventContact[]
   actionItems ActionItem[]
+  mentions    EventMention[]
 
   @@index([userId])
   @@index([date])
 }
 
 model EventContact {
+  eventId   String
+  contactId String
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, contactId])
+}
+
+model EventMention {
   eventId   String
   contactId String
   event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)

@@ -29,6 +29,7 @@ import { LogEventForm } from "@/components/events/log-event-form";
 import { EditEventForm } from "@/components/events/edit-event-form";
 import { EditOOODialog } from "@/components/calendar/edit-ooo-dialog";
 import { CreateOOODialog } from "@/components/calendar/create-ooo-dialog";
+import { RenderedNotes } from "@/components/events/rendered-notes";
 import { formatDateForInput } from "@/lib/date-utils";
 
 interface ContactWithTags extends Contact {
@@ -735,7 +736,7 @@ function EventItem({ event, isPast, onClick }: EventItemProps) {
           </div>
           {event.notes && (
             <p className="text-xs text-gray-700 pt-1 border-t mt-1">
-              {event.notes}
+              <RenderedNotes notes={event.notes} />
             </p>
           )}
         </div>

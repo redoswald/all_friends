@@ -26,6 +26,7 @@ import { EVENT_TYPE_LABELS } from "@/types";
 import { Event, Contact, Tag } from "@prisma/client";
 import { EventType } from "@/types";
 import { EditEventForm } from "./edit-event-form";
+import { RenderedNotes } from "./rendered-notes";
 import { formatDate } from "@/lib/date-utils";
 
 interface ContactWithTags extends Contact {
@@ -146,8 +147,8 @@ export function EventsList({ events, contacts }: EventsListProps) {
                           })}
                         </div>
                         {event.notes && (
-                          <p className="text-sm text-gray-700 mt-2">
-                            {event.notes}
+                          <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">
+                            <RenderedNotes notes={event.notes} />
                           </p>
                         )}
                       </div>
