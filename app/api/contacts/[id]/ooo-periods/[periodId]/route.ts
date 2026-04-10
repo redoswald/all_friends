@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 import { updateOOOPeriodSchema } from "@/lib/validations";
 import { normalizeMetroArea } from "@/lib/metro";
 
@@ -9,7 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; periodId: string }> }
 ) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const { id, periodId } = await params;
     const body = await request.json();
     const data = updateOOOPeriodSchema.parse(body);
@@ -55,6 +55,8 @@ export async function PATCH(
     return NextResponse.json(period);
   } catch (error) {
     console.error("Error updating OOO period:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
@@ -70,7 +72,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; periodId: string }> }
 ) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const { id, periodId } = await params;
 
     // Verify contact ownership
@@ -98,6 +100,8 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting OOO period:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to delete OOO period" },
       { status: 500 }

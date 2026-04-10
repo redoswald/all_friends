@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
 
     const data = await prisma.user.findUnique({
       where: { id: user.id },
@@ -46,6 +46,8 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error exporting data:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to export data" },
       { status: 500 }

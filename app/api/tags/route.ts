@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 import { createTagSchema } from "@/lib/validations";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
 
     const tags = await prisma.tag.findMany({
       where: { userId: user.id },
@@ -20,6 +20,8 @@ export async function GET() {
     return NextResponse.json(tags);
   } catch (error) {
     console.error("Error fetching tags:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to fetch tags" },
       { status: 500 }
@@ -29,7 +31,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const body = await request.json();
     const data = createTagSchema.parse(body);
 
@@ -60,6 +62,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(tag, { status: 201 });
   } catch (error) {
     console.error("Error creating tag:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }

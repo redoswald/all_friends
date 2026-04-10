@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; relationshipId: string }> }
 ) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const { id, relationshipId } = await params;
 
     // Verify contact ownership
@@ -50,6 +50,8 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting relationship:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to delete relationship" },
       { status: 500 }

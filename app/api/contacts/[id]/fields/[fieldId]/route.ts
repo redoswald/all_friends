@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 import { updateContactFieldSchema } from "@/lib/validations";
 
 export async function PATCH(
@@ -8,7 +8,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; fieldId: string }> }
 ) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const { id, fieldId } = await params;
     const body = await request.json();
     const data = updateContactFieldSchema.parse(body);
@@ -39,6 +39,8 @@ export async function PATCH(
     return NextResponse.json(field);
   } catch (error) {
     console.error("Error updating contact field:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
@@ -54,7 +56,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; fieldId: string }> }
 ) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const { id, fieldId } = await params;
 
     // Verify contact ownership
@@ -82,6 +84,8 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting contact field:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to delete contact field" },
       { status: 500 }

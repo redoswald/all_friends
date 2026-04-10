@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 import { createEventSchema } from "@/lib/validations";
 import { extractMentionedContactIds } from "@/lib/mentions";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const contactId = searchParams.get("contactId");
     const limit = parseInt(searchParams.get("limit") || "50");
@@ -45,6 +45,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ events, total });
   } catch (error) {
     console.error("Error fetching events:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to fetch events" },
       { status: 500 }
@@ -54,7 +56,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const body = await request.json();
     const data = createEventSchema.parse(body);
 
@@ -129,6 +131,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     console.error("Error creating event:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }

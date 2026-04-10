@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
 
     const events = await prisma.event.findMany({
       where: {
@@ -24,6 +24,8 @@ export async function GET() {
     return NextResponse.json(locations);
   } catch (error) {
     console.error("Error fetching locations:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json([], { status: 500 });
   }
 }

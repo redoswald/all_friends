@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 import { calculateContactStatus } from "@/lib/cadence";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
 
     // Get all contacts with their latest event and OOO periods
     const contacts = await prisma.contact.findMany({
@@ -72,6 +72,8 @@ export async function GET() {
     });
   } catch (error) {
     console.error("Error fetching dashboard:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to fetch dashboard" },
       { status: 500 }

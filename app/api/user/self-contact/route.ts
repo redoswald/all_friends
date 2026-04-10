@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 import { normalizeMetroArea } from "@/lib/metro";
 import { z } from "zod";
 
@@ -9,9 +9,9 @@ const updateSelfContactSchema = z.object({
   metroArea: z.string().max(100).optional().nullable(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
 
     const selfContact = await prisma.contact.findFirst({
       where: { userId: user.id, isSelf: true },
@@ -29,6 +29,8 @@ export async function GET() {
     return NextResponse.json(selfContact);
   } catch (error) {
     console.error("Error fetching self-contact:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to fetch self-contact" },
       { status: 500 }
@@ -38,7 +40,7 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const body = await request.json();
     const data = updateSelfContactSchema.parse(body);
 
@@ -68,6 +70,8 @@ export async function PATCH(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error updating self-contact:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }

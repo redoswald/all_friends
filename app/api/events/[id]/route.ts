@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
 import { updateEventSchema } from "@/lib/validations";
 import { extractMentionedContactIds } from "@/lib/mentions";
 
@@ -9,7 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const { id } = await params;
     const body = await request.json();
     const data = updateEventSchema.parse(body);
@@ -107,6 +107,8 @@ export async function PATCH(
     return NextResponse.json(event);
   } catch (error) {
     console.error("Error updating event:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     if (error instanceof Error && error.message === "One or more contacts not found") {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -125,7 +127,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await requireUser();
+    const user = await requireUserFromRequest(request);
     const { id } = await params;
 
     const event = await prisma.event.findFirst({
@@ -143,6 +145,8 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting event:", error);
+    const authResponse = handleAPIAuthError(error);
+    if (authResponse) return authResponse;
     return NextResponse.json(
       { error: "Failed to delete event" },
       { status: 500 }
