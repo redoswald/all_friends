@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/api-auth";
 import { updateContactSchema } from "@/lib/validations";
 import { calculateContactStatus } from "@/lib/cadence";
 import { normalizeMetroArea } from "@/lib/metro";

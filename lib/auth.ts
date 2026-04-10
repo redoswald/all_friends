@@ -1,7 +1,6 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { cache } from "react";
@@ -187,50 +186,3 @@ export async function requireUser() {
   return user;
 }
 
-// Token-based auth for API routes (supports both mobile bearer tokens and web cookies)
-export async function requireUserFromRequest(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.slice(7);
-    const supabase = await createClient();
-    const {
-      data: { user: supabaseUser },
-      error,
-    } = await supabase.auth.getUser(token);
-
-    if (error || !supabaseUser) {
-      throw new APIAuthError();
-    }
-
-    let user = await prisma.user.findUnique({
-      where: { supabaseId: supabaseUser.id },
-    });
-
-    if (!user) {
-      user = await syncUserToPrisma(supabaseUser);
-    }
-
-    return user;
-  }
-
-  // Fall back to cookie-based auth (existing web behavior)
-  return requireUser();
-}
-
-// Error class for API auth failures (returns 401 JSON instead of redirect)
-export class APIAuthError extends Error {
-  status = 401;
-  constructor() {
-    super("Unauthorized");
-    this.name = "APIAuthError";
-  }
-}
-
-// Helper: if an error is an APIAuthError, return a 401 response; otherwise return null
-export function handleAPIAuthError(error: unknown): NextResponse | null {
-  if (error instanceof APIAuthError) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}

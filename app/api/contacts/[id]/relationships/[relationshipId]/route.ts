@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUserFromRequest, handleAPIAuthError } from "@/lib/auth";
+import { requireUserFromRequest, handleAPIAuthError } from "@/lib/api-auth";
 
 export async function DELETE(
   request: NextRequest,
