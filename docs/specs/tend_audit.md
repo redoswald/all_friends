@@ -1,4 +1,4 @@
-# All Friends — Structured QoL Audit
+# Tend — Structured QoL Audit
 
 ## What We're Working With
 
@@ -9,7 +9,7 @@
 - Navigation: Dashboard, Contacts, Events, Calendar
 - ⌘K search
 - Sign out link
-- Supabase auth (shared with Opus)
+- Supabase auth (shared with Intend)
 - Contact detail pages, event logging, tags, cadence system, OOO scheduling, relationship stages
 
 ---
@@ -161,7 +161,7 @@
 | Feature | Status | Priority | Notes |
 |---------|--------|----------|-------|
 | Landing page | ✅ | — | Exists, looks good |
-| App switcher to Opus | ✅ | High | Apps section in settings with links to All Friends and Opus |
+| App switcher to Intend | ✅ | High | Apps section in settings with links to Tend and Intend |
 | Pricing / "is this free?" | ❌ | Medium | Even if free, say so explicitly |
 | Privacy policy | ❌ | Medium | Needed if other people are signing up |
 | Terms of service | ❌ | Low | Basic CYA |
@@ -184,7 +184,7 @@
 ## Summary: Top 10 Priorities
 
 1. ~~**Account management page**~~ ✅ — Profile, password, data export
-2. ~~**App switcher**~~ ✅ — Minimal nav element linking All Friends ↔ Opus
+2. ~~**App switcher**~~ ✅ — Minimal nav element linking Tend ↔ Intend
 3. ~~**Archive vs. delete**~~ ✅ — isArchived flag, restore, bulk archive
 4. ~~**Toast/feedback system**~~ ✅ — Comprehensive toasts + loading skeletons
 5. ~~**Empty states**~~ ✅ — All major pages have empty state handling
