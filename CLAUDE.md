@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-Project instructions for AI-assisted development on All Friends.
+Project instructions for AI-assisted development on Tend.
 
 ## What This Is
 
-All Friends is a personal relationship manager (PRM). Users track contacts, log interactions, set cadence-based reminders, and organize relationships by funnel stage. Think of it as a CRM but for your personal life.
+Tend is a personal relationship manager (PRM). Users track contacts, log interactions, set cadence-based reminders, and organize relationships by funnel stage. Think of it as a CRM but for your personal life.
 
 ## Commands
 

@@ -4,16 +4,16 @@ import { ExternalLink } from "lucide-react";
 
 const apps = [
   {
-    name: "All Friends",
+    name: "Tend",
     description: "Personal relationship manager",
     borderColor: "#D14545",
     current: true,
   },
   {
-    name: "Opus",
+    name: "Intend",
     description: "AI-assisted task manager",
     borderColor: "#F97316",
-    href: "https://opus.aaronos.ai",
+    href: "https://tasks.doneintentionally.com",
   },
 ] as const;
 

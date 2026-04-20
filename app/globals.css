@@ -9,7 +9,7 @@
   --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* aaronOS Accent Colors (All Friends = Coral) */
+  /* aaronOS Accent Colors (Tend = Coral) */
   --color-accent-50: var(--accent-50);
   --color-accent-100: var(--accent-100);
   --color-accent-200: var(--accent-200);
@@ -85,7 +85,7 @@
 }
 
 :root {
-  /* aaronOS Accent (All Friends = Coral) */
+  /* aaronOS Accent (Tend = Coral) */
   --accent-50: #FFE5E5;
   --accent-100: #FFCCCC;
   --accent-200: #FF9999;

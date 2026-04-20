@@ -124,7 +124,7 @@ export async function signInWithGoogle() {
   // Use SITE_URL env var, with production fallback
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
     || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-    || "https://all-friends.vercel.app";
+    || "https://friends.doneintentionally.com";
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",

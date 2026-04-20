@@ -1,4 +1,4 @@
-# All Friends
+# Tend
 
 A personal relationship manager (PRM) that helps you nurture meaningful relationships with intention. Track interactions, set cadence-based reminders, log events, and organize your relationships at different investment levels.
 
@@ -25,7 +25,7 @@ A personal relationship manager (PRM) that helps you nurture meaningful relation
 
    ```bash
    git clone <repo-url>
-   cd All_Friends
+   cd tend-web
    npm install
    ```
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# All Friends PRM - Database Backup Script
+# Tend PRM - Database Backup Script
 # Run this monthly: ./scripts/backup.sh
 
 BACKUP_DIR="./backups"
