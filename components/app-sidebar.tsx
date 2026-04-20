@@ -110,7 +110,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
           <Users className="size-4 text-accent-300" />
         </div>
         <span className="text-sm font-semibold text-[var(--ds-gray-900)]">
-          All Friends
+          Tend
         </span>
       </div>
 

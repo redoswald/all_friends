@@ -75,7 +75,7 @@ export default async function LandingPage() {
                 Be the friend you wish you had
               </h1>
               <p className="mt-6 text-lg md:text-xl text-gray-700 leading-relaxed">
-                Life gets busy. All Friends helps you stay close to the people you care about—with gentle reminders, conversation notes, and a little help remembering what matters.
+                Life gets busy. Tend helps you stay close to the people you care about—with gentle reminders, conversation notes, and a little help remembering what matters.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 {isAuthenticated ? (
@@ -124,7 +124,7 @@ export default async function LandingPage() {
       <section className="px-4 py-16 bg-card/80">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-semibold text-center text-gray-900 mb-12">
-            How All Friends helps
+            How Tend helps
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature) => (
@@ -189,7 +189,7 @@ export default async function LandingPage() {
       {/* Simple Footer */}
       <footer className="px-4 py-8">
         <div className="max-w-6xl mx-auto text-center text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} All Friends. Built with care.</p>
+          <p>&copy; {new Date().getFullYear()} Tend. Built with care.</p>
         </div>
       </footer>
     </div>

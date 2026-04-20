@@ -1,4 +1,4 @@
-# All Friends PRM — Product Spec
+# Tend PRM — Product Spec
 
 A personal relationship manager that helps you nurture meaningful relationships with intention. Track interactions, set cadence-based reminders, log events, and organize your relationships at different investment levels.
 
@@ -209,7 +209,7 @@ Contacts are lazy-loaded on first open. Arrow keys to navigate, Enter to select,
 ## Navigation
 
 **Desktop** (md and above):
-- Horizontal nav bar with "All Friends" logo
+- Horizontal nav bar with "Tend" logo
 - Nav items: Dashboard, Contacts, Events, Calendar (with icons)
 - Search button with Cmd+K hint
 - Sign out button

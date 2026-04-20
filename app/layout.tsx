@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "All Friends - Personal Relationship Manager",
+  title: "Tend — Personal Relationship Manager",
   description: "Be the friend you wish you had. Track interactions, set reminders, and nurture your relationships.",
 };
 

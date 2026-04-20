@@ -1,4 +1,4 @@
-# All Friends — Style Primer
+# Tend — Style Primer
 
 ## Brand Direction
 
@@ -212,7 +212,7 @@ Alternate icon backgrounds between `#E0F7F5` (teal light) and `#FFE5E5` (coral l
 
 4. Rewrite subhead:
    - Current: "Stay connected with the people who matter most..."
-   - Better: "Life gets busy. All Friends helps you stay close to the people you care about—with gentle reminders, conversation notes, and a little help remembering what matters."
+   - Better: "Life gets busy. Tend helps you stay close to the people you care about—with gentle reminders, conversation notes, and a little help remembering what matters."
 
 ### Feature Cards Grid
 
