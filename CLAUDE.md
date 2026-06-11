@@ -84,6 +84,10 @@ All user-owned models cascade delete from User. All contact-owned models cascade
 - **Border radius:** 0.75rem default
 - **Dark mode** is supported via CSS variables and the `.dark` class (next-themes)
 
+### Design System
+
+The aaronOS design system has moved to the suite-level docs folder: `../docs/design-system.md` (i.e. `aaronOS/docs/design-system.md`). It applies to every app in the suite. Tend-specific style primer remains at `docs/style_primer.md`.
+
 ## Environment Variables
 
 Required in `.env.local`:
