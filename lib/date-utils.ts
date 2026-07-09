@@ -57,3 +57,28 @@ export function formatRelativeDate(date: Date | string): string {
   if (diffDays > 0) return `in ${diffDays} days`;
   return `${Math.abs(diffDays)} days ago`;
 }
+
+/**
+ * Events are date-only when stored at the 12:00:00 UTC sentinel (see storage
+ * strategy above); any other stored time is a real, user-chosen time.
+ */
+export function isDateOnlyEvent(date: Date | string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.getUTCHours() === 12 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0;
+}
+
+/**
+ * Format a date's time for the HTML time input (HH:mm in local timezone)
+ */
+export function formatTimeForInput(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * Combine date + time form inputs into a UTC ISO string. Must run in the
+ * browser so the user's timezone is applied — the server runs in UTC.
+ */
+export function combineDateTimeToISO(dateStr: string, timeStr: string): string {
+  return new Date(`${dateStr}T${timeStr}`).toISOString();
+}

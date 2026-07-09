@@ -17,7 +17,12 @@ import { X, Plus, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { Event } from "@prisma/client";
-import { formatDateForInput } from "@/lib/date-utils";
+import {
+  combineDateTimeToISO,
+  formatDateForInput,
+  formatTimeForInput,
+  isDateOnlyEvent,
+} from "@/lib/date-utils";
 
 interface EventWithContacts extends Event {
   contacts: { contact: { id: string; name: string } }[];
@@ -79,9 +84,14 @@ export function EditEventForm({
       .filter((c) => c.type === "new")
       .map((c) => c.name);
 
+    const dateStr = formData.get("date") as string;
+    const timeStr = formData.get("time") as string;
+
     const data = {
       title: (formData.get("title") as string) || null,
-      date: formData.get("date") as string,
+      // With a time, send full ISO (built here so the browser's timezone
+      // applies); date-only stays YYYY-MM-DD -> noon-UTC sentinel
+      date: timeStr ? combineDateTimeToISO(dateStr, timeStr) : dateStr,
       eventType: formData.get("eventType") as string,
       notes: (formData.get("notes") as string) || null,
       location: (formData.get("location") as string) || null,
@@ -139,6 +149,7 @@ export function EditEventForm({
     !selectedContacts.some((c) => c.name.toLowerCase() === searchTerm.trim().toLowerCase());
 
   const eventDate = formatDateForInput(event.date);
+  const eventTime = isDateOnlyEvent(event.date) ? "" : formatTimeForInput(event.date);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -200,7 +211,7 @@ export function EditEventForm({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="date">Date *</Label>
           <Input
@@ -210,6 +221,11 @@ export function EditEventForm({
             required
             defaultValue={eventDate}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="time">Time</Label>
+          <Input id="time" name="time" type="time" defaultValue={eventTime} />
         </div>
 
         <div className="space-y-2">

@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Plus, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { EVENT_TYPE_LABELS } from "@/types";
-import { getTodayForInput } from "@/lib/date-utils";
+import { combineDateTimeToISO, getTodayForInput } from "@/lib/date-utils";
 
 interface LogEventFormProps {
   contacts: { id: string; name: string }[];
@@ -75,9 +75,14 @@ export function LogEventForm({
       .filter((c) => c.type === "new")
       .map((c) => c.name);
 
+    const dateStr = formData.get("date") as string;
+    const timeStr = formData.get("time") as string;
+
     const data = {
       title: (formData.get("title") as string) || null,
-      date: formData.get("date") as string,
+      // With a time, send full ISO (built here so the browser's timezone
+      // applies); date-only stays YYYY-MM-DD -> noon-UTC sentinel
+      date: timeStr ? combineDateTimeToISO(dateStr, timeStr) : dateStr,
       eventType: formData.get("eventType") as string,
       notes: (formData.get("notes") as string) || null,
       location: (formData.get("location") as string) || null,
@@ -196,7 +201,7 @@ export function LogEventForm({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="date">Date *</Label>
           <Input
@@ -206,6 +211,11 @@ export function LogEventForm({
             required
             defaultValue={dateForInput}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="time">Time</Label>
+          <Input id="time" name="time" type="time" />
         </div>
 
         <div className="space-y-2">
