@@ -16,8 +16,9 @@ This file wins over both; the Intend-app tasks now point here.
       `specs/contacts-integration.md`. Shipped (tend-ios `mobile-first-flows` + ContactLink
       backend): picker-based linking, live phone/email from CNContactStore with pick-time
       cache fallback, Text/Call/Email row for linked contacts, Today-page one-tap call/text
-      with post-call quick-log prompt. Remaining: phase 3 (suggested links review list),
-      phase 4 (add-from-Contacts), and the web CSV/vCard + Google People API side (Tier 6).
+      with post-call quick-log prompt. Phase 3 (suggested-links review, one tap per
+      match) + birthday sync shipped later same day. Remaining: phase 4 (add-from-Contacts)
+      and the web CSV/vCard + Google People API side (Tier 6).
 - [ ] **Event editing on mobile** [intend]
 - [ ] Touch target audit — buttons are h-9/h-8/h-6; all interactive elements need ≥44px [audit §8, High]
 - [ ] PWA / Add to Home Screen [audit §8, Medium]
