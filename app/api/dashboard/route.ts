@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
           where: { tag: { deletedAt: null } },
           include: { tag: true },
         },
+        links: true,
         events: {
           where: { event: { deletedAt: null } },
           include: { event: true },
