@@ -7,12 +7,13 @@ async function getEvents() {
   const user = await requireUser();
 
   const events = await prisma.event.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, deletedAt: null },
     include: {
       contacts: {
+        where: { contact: { deletedAt: null } },
         include: {
           contact: {
-            include: { tags: { include: { tag: true } } },
+            include: { tags: { where: { tag: { deletedAt: null } }, include: { tag: true } } },
           },
         },
       },
@@ -26,7 +27,7 @@ async function getEvents() {
 async function getContacts() {
   const user = await requireUser();
   return prisma.contact.findMany({
-    where: { userId: user.id, isArchived: false },
+    where: { userId: user.id, isArchived: false, deletedAt: null },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });

@@ -28,6 +28,7 @@ async function getContacts(searchParams: {
     where: {
       userId: user.id,
       isSelf: false,
+      deletedAt: null,
       isArchived: archived === "true" ? true : false,
       ...(tagId && {
         tags: { some: { tagId } },
@@ -44,9 +45,11 @@ async function getContacts(searchParams: {
     },
     include: {
       tags: {
+        where: { tag: { deletedAt: null } },
         include: { tag: true },
       },
       events: {
+        where: { event: { deletedAt: null } },
         include: { event: true },
         orderBy: { event: { date: "desc" } },
       },
@@ -61,7 +64,7 @@ async function getContacts(searchParams: {
 
   // Get user's own OOO periods
   const selfContact = await prisma.contact.findFirst({
-    where: { userId: user.id, isSelf: true },
+    where: { userId: user.id, isSelf: true, deletedAt: null },
     select: { oooPeriods: { orderBy: { startDate: "asc" } } },
   });
   const userOOOPeriods = selfContact?.oooPeriods ?? [];
@@ -100,7 +103,7 @@ async function getContacts(searchParams: {
 async function getTags() {
   const user = await requireUser();
   return prisma.tag.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, deletedAt: null },
     orderBy: { name: "asc" },
   });
 }

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const user = await requireUserFromRequest(request);
 
     const selfContact = await prisma.contact.findFirst({
-      where: { userId: user.id, isSelf: true },
+      where: { userId: user.id, isSelf: true, deletedAt: null },
       include: {
         oooPeriods: {
           orderBy: { startDate: "asc" },
@@ -45,7 +45,7 @@ export async function PATCH(request: NextRequest) {
     const data = updateSelfContactSchema.parse(body);
 
     const selfContact = await prisma.contact.findFirst({
-      where: { userId: user.id, isSelf: true },
+      where: { userId: user.id, isSelf: true, deletedAt: null },
     });
 
     if (!selfContact) {

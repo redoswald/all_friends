@@ -20,7 +20,7 @@ export default async function SettingsPage() {
 
   // Fetch self-contact for home base and OOO periods
   const selfContact = await prisma.contact.findFirst({
-    where: { userId: user.id, isSelf: true },
+    where: { userId: user.id, isSelf: true, deletedAt: null },
     include: {
       oooPeriods: {
         orderBy: { startDate: "asc" },

@@ -9,12 +9,14 @@ export async function GET(request: NextRequest) {
 
     // Get all contacts with their latest event and OOO periods
     const contacts = await prisma.contact.findMany({
-      where: { userId: user.id, isArchived: false },
+      where: { userId: user.id, isArchived: false, deletedAt: null },
       include: {
         tags: {
+          where: { tag: { deletedAt: null } },
           include: { tag: true },
         },
         events: {
+          where: { event: { deletedAt: null } },
           include: { event: true },
           orderBy: { event: { date: "desc" } },
           take: 1,
@@ -53,6 +55,7 @@ export async function GET(request: NextRequest) {
     const eventsThisMonth = await prisma.event.count({
       where: {
         userId: user.id,
+        deletedAt: null,
         date: {
           gte: startOfMonth,
         },

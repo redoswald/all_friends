@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Calendar, MapPin, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
+import { toastDeletedWithUndo } from "@/lib/undo-toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState } from "@/components/empty-state";
 import { EVENT_TYPE_LABELS } from "@/types";
@@ -60,17 +62,24 @@ export function EventsList({ events, contacts }: EventsListProps) {
   const handleDelete = async () => {
     if (!deletingEventId) return;
 
+    const eventId = deletingEventId;
     try {
-      const res = await fetch(`/api/events/${deletingEventId}`, {
+      const res = await apiFetch(`/api/events/${eventId}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        toast.success("Event deleted");
+        toastDeletedWithUndo("Event deleted", `/api/events/${eventId}/restore`, () =>
+          router.refresh()
+        );
         setDeletingEventId(null);
         router.refresh();
+      } else {
+        toast.error("Failed to delete event");
       }
     } catch (error) {
-      toast.error("Failed to delete event");
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to delete event");
+      }
     }
   };
 
@@ -203,7 +212,7 @@ export function EventsList({ events, contacts }: EventsListProps) {
         open={!!deletingEventId}
         onOpenChange={(open) => !open && setDeletingEventId(null)}
         title="Delete event"
-        description="Are you sure you want to delete this event? This action cannot be undone."
+        description="Are you sure you want to delete this event? You'll have a few seconds to undo."
         onConfirm={handleDelete}
       />
     </div>

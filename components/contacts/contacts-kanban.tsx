@@ -9,6 +9,7 @@ import { ContactStatus, getStatusText } from "@/lib/cadence";
 import { FUNNEL_STAGE_LABELS, FunnelStage } from "@/types";
 import { Contact, Tag } from "@prisma/client";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api-client";
 
 interface ContactWithDerived extends Contact {
   tags: { tag: Tag }[];
@@ -84,7 +85,7 @@ export function ContactsKanban({ contacts }: ContactsKanbanProps) {
 
     // Update the contact's funnel stage
     try {
-      const res = await fetch(`/api/contacts/${contactId}`, {
+      const res = await apiFetch(`/api/contacts/${contactId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ funnelStage: stage }),

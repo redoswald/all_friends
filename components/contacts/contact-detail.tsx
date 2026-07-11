@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, MoreHorizontal, Pencil, Trash2, Plus, Calendar, Plane, Archive, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
+import { toastDeletedWithUndo } from "@/lib/undo-toast";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ContactStatus, getStatusText, CADENCE_OPTIONS, getAnnualFrequencyText } from "@/lib/cadence";
 import { FUNNEL_STAGE_LABELS, EVENT_TYPE_LABELS } from "@/types";
@@ -97,7 +99,7 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
   const handleArchive = async () => {
     setArchiving(true);
     try {
-      const res = await fetch(`/api/contacts/${contact.id}`, {
+      const res = await apiFetch(`/api/contacts/${contact.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isArchived: true }),
@@ -105,6 +107,12 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
       if (res.ok) {
         toast.success("Contact archived");
         router.push("/contacts");
+      } else {
+        toast.error("Failed to archive contact");
+      }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to archive contact");
       }
     } finally {
       setArchiving(false);
@@ -114,7 +122,7 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
   const handleUnarchive = async () => {
     setArchiving(true);
     try {
-      const res = await fetch(`/api/contacts/${contact.id}`, {
+      const res = await apiFetch(`/api/contacts/${contact.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isArchived: false }),
@@ -122,6 +130,12 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
       if (res.ok) {
         toast.success("Contact restored");
         router.refresh();
+      } else {
+        toast.error("Failed to restore contact");
+      }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to restore contact");
       }
     } finally {
       setArchiving(false);
@@ -131,12 +145,22 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/contacts/${contact.id}`, {
+      const res = await apiFetch(`/api/contacts/${contact.id}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        toast.success("Contact deleted");
+        toastDeletedWithUndo(
+          "Contact deleted",
+          `/api/contacts/${contact.id}/restore`,
+          () => router.refresh()
+        );
         router.push("/contacts");
+      } else {
+        toast.error("Failed to delete contact");
+      }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to delete contact");
       }
     } finally {
       setDeleting(false);
@@ -147,17 +171,24 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
   const handleDeleteEvent = async () => {
     if (!deletingEventId) return;
 
+    const eventId = deletingEventId;
     try {
-      const res = await fetch(`/api/events/${deletingEventId}`, {
+      const res = await apiFetch(`/api/events/${eventId}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        toast.success("Event deleted");
+        toastDeletedWithUndo("Event deleted", `/api/events/${eventId}/restore`, () =>
+          router.refresh()
+        );
         setDeletingEventId(null);
         router.refresh();
+      } else {
+        toast.error("Failed to delete event");
       }
     } catch (error) {
-      toast.error("Failed to delete event");
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to delete event");
+      }
     }
   };
 
@@ -581,7 +612,7 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
         open={confirmDeleteContact}
         onOpenChange={setConfirmDeleteContact}
         title="Delete contact"
-        description={<>Are you sure you want to delete <strong>{contact.name}</strong>? All their events, fields, and relationships will also be deleted. This action cannot be undone.</>}
+        description={<>Are you sure you want to delete <strong>{contact.name}</strong>? Their events, fields, and relationships will be hidden too. You&apos;ll have a few seconds to undo.</>}
         onConfirm={handleDelete}
         loading={deleting}
       />
@@ -590,7 +621,7 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
         open={!!deletingEventId}
         onOpenChange={(open) => !open && setDeletingEventId(null)}
         title="Delete event"
-        description="Are you sure you want to delete this event? This action cannot be undone."
+        description="Are you sure you want to delete this event? You'll have a few seconds to undo."
         onConfirm={handleDeleteEvent}
       />
     </div>

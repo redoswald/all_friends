@@ -8,10 +8,12 @@ export async function GET(request: NextRequest) {
     const user = await requireUserFromRequest(request);
 
     const tags = await prisma.tag.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, deletedAt: null },
       include: {
         _count: {
-          select: { contacts: true },
+          select: {
+            contacts: { where: { contact: { deletedAt: null } } },
+          },
         },
       },
       orderBy: { name: "asc" },
@@ -45,11 +47,20 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (existing) {
+    if (existing && !existing.deletedAt) {
       return NextResponse.json(
         { error: "A tag with this name already exists" },
         { status: 400 }
       );
+    }
+
+    // Name collides with a soft-deleted tag — revive it instead of creating
+    if (existing) {
+      const revived = await prisma.tag.update({
+        where: { id: existing.id },
+        data: { ...data, deletedAt: null },
+      });
+      return NextResponse.json(revived, { status: 201 });
     }
 
     const tag = await prisma.tag.create({

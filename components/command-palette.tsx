@@ -11,6 +11,8 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
+import { toast } from "sonner";
 
 interface Contact {
   id: string;
@@ -56,14 +58,17 @@ export function CommandPalette() {
     if (!open) return;
     if (contacts.length > 0) return;
 
-    fetch("/api/contacts")
+    apiFetch("/api/contacts")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
           setContacts(data);
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        if (error instanceof SessionExpiredError) return;
+        toast.error("Search failed");
+      });
   }, [open, contacts.length]);
 
   function select(href: string) {

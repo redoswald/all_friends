@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const events = await prisma.event.findMany({
       where: {
         userId: user.id,
+        deletedAt: null,
         ...(contactId && {
           contacts: {
             some: { contactId },
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         contacts: {
+          where: { contact: { deletedAt: null } },
           include: { contact: true },
         },
       },
@@ -34,6 +36,7 @@ export async function GET(request: NextRequest) {
     const total = await prisma.event.count({
       where: {
         userId: user.id,
+        deletedAt: null,
         ...(contactId && {
           contacts: {
             some: { contactId },
@@ -68,6 +71,7 @@ export async function POST(request: NextRequest) {
         where: {
           id: { in: contactIds },
           userId: user.id,
+          deletedAt: null,
         },
       });
 
@@ -117,7 +121,7 @@ export async function POST(request: NextRequest) {
       const mentionedIds = extractMentionedContactIds(event.notes);
       if (mentionedIds.length > 0) {
         const validMentioned = await prisma.contact.findMany({
-          where: { id: { in: mentionedIds }, userId: user.id },
+          where: { id: { in: mentionedIds }, userId: user.id, deletedAt: null },
           select: { id: true },
         });
         if (validMentioned.length > 0) {

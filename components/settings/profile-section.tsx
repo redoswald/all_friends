@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 
 interface ProfileSectionProps {
   user: {
@@ -55,7 +56,7 @@ export function ProfileSection({ user, selfContact }: ProfileSectionProps) {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/user/profile", {
+      const res = await apiFetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim() }),
@@ -68,8 +69,10 @@ export function ProfileSection({ user, selfContact }: ProfileSectionProps) {
         const data = await res.json();
         toast.error(data.error || "Failed to update profile");
       }
-    } catch {
-      toast.error("Failed to update profile");
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to update profile");
+      }
     } finally {
       setSaving(false);
     }
@@ -78,7 +81,7 @@ export function ProfileSection({ user, selfContact }: ProfileSectionProps) {
   const handleSaveHomeBase = async () => {
     setSavingHomeBase(true);
     try {
-      const res = await fetch("/api/user/self-contact", {
+      const res = await apiFetch("/api/user/self-contact", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,8 +100,10 @@ export function ProfileSection({ user, selfContact }: ProfileSectionProps) {
         const data = await res.json();
         toast.error(data.error || "Failed to update home base");
       }
-    } catch {
-      toast.error("Failed to update home base");
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to update home base");
+      }
     } finally {
       setSavingHomeBase(false);
     }

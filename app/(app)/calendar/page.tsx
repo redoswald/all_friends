@@ -32,6 +32,7 @@ async function getCalendarData(year: number, month: number) {
     prisma.event.findMany({
       where: {
         userId: user.id,
+        deletedAt: null,
         date: {
           gte: startOfView,
           lte: endOfView,
@@ -39,10 +40,12 @@ async function getCalendarData(year: number, month: number) {
       },
       include: {
         contacts: {
+          where: { contact: { deletedAt: null } },
           include: {
             contact: {
               include: {
                 tags: {
+                  where: { tag: { deletedAt: null } },
                   include: { tag: true },
                 },
               },
@@ -53,7 +56,7 @@ async function getCalendarData(year: number, month: number) {
       orderBy: { date: "asc" },
     }),
     prisma.contact.findMany({
-      where: { userId: user.id, isArchived: false, isSelf: false },
+      where: { userId: user.id, isArchived: false, isSelf: false, deletedAt: null },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
@@ -62,7 +65,7 @@ async function getCalendarData(year: number, month: number) {
   // Get user's own OOO periods (from self-contact)
   const now = new Date();
   const selfContact = await prisma.contact.findFirst({
-    where: { userId: user.id, isSelf: true },
+    where: { userId: user.id, isSelf: true, deletedAt: null },
     select: {
       id: true,
       name: true,
@@ -77,13 +80,16 @@ async function getCalendarData(year: number, month: number) {
       userId: user.id,
       isArchived: false,
       isSelf: false,
+      deletedAt: null,
       cadenceDays: { not: null },
     },
     include: {
       tags: {
+        where: { tag: { deletedAt: null } },
         include: { tag: true },
       },
       events: {
+        where: { event: { deletedAt: null } },
         include: { event: true },
         orderBy: { event: { date: "desc" } },
       },
@@ -149,6 +155,7 @@ async function getCalendarData(year: number, month: number) {
   const oooContacts = await prisma.contact.findMany({
     where: {
       userId: user.id,
+      deletedAt: null,
       oooPeriods: {
         some: {
           OR: [

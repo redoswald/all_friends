@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   type ImportantDate,
@@ -116,7 +117,7 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
         ? `/api/contacts/${contactId}/dates/${editingId}`
         : `/api/contacts/${contactId}/dates`;
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -133,6 +134,10 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
         resetForm();
         router.refresh();
       }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to save date");
+      }
     } finally {
       setLoading(false);
     }
@@ -142,7 +147,7 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
     if (!deletingId) return;
 
     try {
-      const res = await fetch(`/api/contacts/${contactId}/dates/${deletingId}`, {
+      const res = await apiFetch(`/api/contacts/${contactId}/dates/${deletingId}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -151,6 +156,7 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
         router.refresh();
       }
     } catch (error) {
+      if (error instanceof SessionExpiredError) return;
       toast.error("Failed to delete date");
     }
   };

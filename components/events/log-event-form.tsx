@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { EVENT_TYPE_LABELS } from "@/types";
 import { combineDateTimeToISO, getTodayForInput } from "@/lib/date-utils";
 
@@ -50,7 +51,7 @@ export function LogEventForm({
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch("/api/events/locations")
+    apiFetch("/api/events/locations")
       .then((res) => res.ok ? res.json() : [])
       .then(setLocationSuggestions)
       .catch(() => {});
@@ -91,7 +92,7 @@ export function LogEventForm({
     };
 
     try {
-      const res = await fetch("/api/events", {
+      const res = await apiFetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -105,7 +106,9 @@ export function LogEventForm({
       toast.success("Event logged");
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (!(err instanceof SessionExpiredError)) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

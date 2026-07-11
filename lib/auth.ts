@@ -11,6 +11,14 @@ async function ensureSelfContact(userId: string, name: string | null, email: str
     where: { userId, isSelf: true },
   });
 
+  // A soft-deleted self-contact can't be recreated (unique index on isSelf) — revive it
+  if (existing?.deletedAt) {
+    await prisma.contact.update({
+      where: { id: existing.id },
+      data: { deletedAt: null },
+    });
+  }
+
   if (!existing) {
     await prisma.contact.create({
       data: {

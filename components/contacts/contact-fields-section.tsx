@@ -30,6 +30,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
@@ -122,7 +123,7 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
         ? `/api/contacts/${contactId}/fields/${editingId}`
         : `/api/contacts/${contactId}/fields`;
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -138,6 +139,10 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
         resetForm();
         router.refresh();
       }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to save contact info");
+      }
     } finally {
       setLoading(false);
     }
@@ -147,7 +152,7 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
     if (!deletingId) return;
 
     try {
-      const res = await fetch(`/api/contacts/${contactId}/fields/${deletingId}`, {
+      const res = await apiFetch(`/api/contacts/${contactId}/fields/${deletingId}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -156,6 +161,7 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
         router.refresh();
       }
     } catch (error) {
+      if (error instanceof SessionExpiredError) return;
       toast.error("Failed to delete field");
     }
   };

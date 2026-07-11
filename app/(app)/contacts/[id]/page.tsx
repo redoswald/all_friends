@@ -15,16 +15,20 @@ async function getContact(id: string) {
     where: {
       id,
       userId: user.id,
+      deletedAt: null,
     },
     include: {
       tags: {
+        where: { tag: { deletedAt: null } },
         include: { tag: true },
       },
       events: {
+        where: { event: { deletedAt: null } },
         include: {
           event: {
             include: {
               contacts: {
+                where: { contact: { deletedAt: null } },
                 include: { contact: true },
               },
             },
@@ -40,6 +44,7 @@ async function getContact(id: string) {
         orderBy: [{ dateType: "asc" }, { month: "asc" }, { day: "asc" }],
       },
       relationships: {
+        where: { relatedContact: { deletedAt: null } },
         include: {
           relatedContact: {
             select: { id: true, name: true },
@@ -47,6 +52,7 @@ async function getContact(id: string) {
         },
       },
       relatedRelationships: {
+        where: { contact: { deletedAt: null } },
         include: {
           contact: {
             select: { id: true, name: true },
@@ -87,7 +93,7 @@ async function getContact(id: string) {
 async function getTags() {
   const user = await requireUser();
   return prisma.tag.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, deletedAt: null },
     orderBy: { name: "asc" },
   });
 }
@@ -95,7 +101,7 @@ async function getTags() {
 async function getContacts() {
   const user = await requireUser();
   return prisma.contact.findMany({
-    where: { userId: user.id, isArchived: false, isSelf: false },
+    where: { userId: user.id, isArchived: false, isSelf: false, deletedAt: null },
     orderBy: { name: "asc" },
     select: { id: true, name: true },
   });
@@ -104,11 +110,12 @@ async function getContacts() {
 async function getMentionedInEvents(contactId: string) {
   const user = await requireUser();
   const mentions = await prisma.eventMention.findMany({
-    where: { contactId },
+    where: { contactId, event: { deletedAt: null } },
     include: {
       event: {
         include: {
           contacts: {
+            where: { contact: { deletedAt: null } },
             include: { contact: true },
           },
         },

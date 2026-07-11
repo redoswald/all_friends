@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 
 const TAG_COLORS = [
   "#ef4444", // red
@@ -49,7 +50,7 @@ export function CreateTagDialog({ onSuccess, trigger }: CreateTagDialogProps) {
     };
 
     try {
-      const res = await fetch("/api/tags", {
+      const res = await apiFetch("/api/tags", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -65,7 +66,9 @@ export function CreateTagDialog({ onSuccess, trigger }: CreateTagDialogProps) {
       setSelectedColor(null);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (!(err instanceof SessionExpiredError)) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

@@ -16,7 +16,7 @@ export async function PATCH(
 
     // Verify ownership
     const existing = await prisma.event.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!existing) {
@@ -77,6 +77,7 @@ export async function PATCH(
         data: eventData,
         include: {
           contacts: {
+            where: { contact: { deletedAt: null } },
             include: { contact: true },
           },
         },
@@ -131,15 +132,17 @@ export async function DELETE(
     const { id } = await params;
 
     const event = await prisma.event.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    await prisma.event.delete({
+    // Soft delete — restorable via POST /api/events/[id]/restore
+    await prisma.event.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
 
     return NextResponse.json({ success: true });

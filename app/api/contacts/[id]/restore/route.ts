@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireUserFromRequest, handleAPIAuthError } from "@/lib/api-auth";
 
-export async function DELETE(
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -10,27 +10,26 @@ export async function DELETE(
     const user = await requireUserFromRequest(request);
     const { id } = await params;
 
-    const tag = await prisma.tag.findFirst({
-      where: { id, userId: user.id, deletedAt: null },
+    const contact = await prisma.contact.findFirst({
+      where: { id, userId: user.id, deletedAt: { not: null } },
     });
 
-    if (!tag) {
-      return NextResponse.json({ error: "Tag not found" }, { status: 404 });
+    if (!contact) {
+      return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
-    // Soft delete — restorable via POST /api/tags/[id]/restore
-    await prisma.tag.update({
+    const restored = await prisma.contact.update({
       where: { id },
-      data: { deletedAt: new Date() },
+      data: { deletedAt: null },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(restored);
   } catch (error) {
-    console.error("Error deleting tag:", error);
+    console.error("Error restoring contact:", error);
     const authResponse = handleAPIAuthError(error);
     if (authResponse) return authResponse;
     return NextResponse.json(
-      { error: "Failed to delete tag" },
+      { error: "Failed to restore contact" },
       { status: 500 }
     );
   }

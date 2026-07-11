@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
         userId: user.id,
         isArchived: false,
         isSelf: false,
+        deletedAt: null,
         ...(tagId && {
           tags: {
             some: { tagId },
@@ -36,9 +37,11 @@ export async function GET(request: NextRequest) {
       },
       include: {
         tags: {
+          where: { tag: { deletedAt: null } },
           include: { tag: true },
         },
         events: {
+          where: { event: { deletedAt: null } },
           include: { event: true },
           orderBy: { event: { date: "desc" } },
           take: 1,

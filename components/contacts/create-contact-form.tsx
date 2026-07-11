@@ -16,6 +16,7 @@ import {
 import { Tag } from "@prisma/client";
 import { FUNNEL_STAGE_LABELS } from "@/types";
 import { CADENCE_OPTIONS, getAnnualFrequencyText } from "@/lib/cadence";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
@@ -60,7 +61,7 @@ export function CreateContactForm({ tags, onSuccess }: CreateContactFormProps) {
     };
 
     try {
-      const res = await fetch("/api/contacts", {
+      const res = await apiFetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -74,7 +75,9 @@ export function CreateContactForm({ tags, onSuccess }: CreateContactFormProps) {
       toast.success("Contact created");
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (!(err instanceof SessionExpiredError)) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }
