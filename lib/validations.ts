@@ -29,6 +29,13 @@ export const updateContactSchema = createContactSchema.partial().extend({
   isArchived: z.boolean().optional(),
 });
 
+// External address-book link (Apple/Google) — see docs/specs/contacts-integration.md
+export const contactLinkSchema = z.object({
+  source: z.enum(["APPLE", "GOOGLE"]),
+  externalId: z.string().min(1).max(500),
+  fingerprint: z.string().max(200).optional().nullable(),
+});
+
 // Parse date string as local date and convert to UTC noon
 // This avoids timezone issues where "2025-11-28" could become Nov 27 in some timezones
 function parseLocalDateToUTC(dateStr: string): Date {

@@ -60,6 +60,7 @@ model Contact {
   // Relations
   tags   ContactTag[]
   events EventContact[]
+  links  ContactLink[]
 
   // Monica-like features
   fields               ContactField[]
@@ -158,6 +159,25 @@ model ActionItem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Link to an external address-book entry (Apple Contacts, Google Contacts).
+// Pull-only: Tend never writes to the external store. See docs/specs/contacts-integration.md.
+model ContactLink {
+  id        String  @id @default(cuid())
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  source     String  // APPLE, GOOGLE
+  externalId String  // CNContact.identifier (per-device!) or People API resourceName
+  // Normalized name+phone hash for self-healing when externalId misses (new device/restore)
+  fingerprint String?
+
+  linkedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([contactId, source])
+  @@index([contactId])
 }
 
 // Contact Fields (email, phone, social media, custom)

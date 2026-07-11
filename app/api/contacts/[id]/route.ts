@@ -24,6 +24,7 @@ export async function GET(
           where: { tag: { deletedAt: null } },
           include: { tag: true },
         },
+        links: true,
         events: {
           where: { event: { deletedAt: null } },
           include: {
