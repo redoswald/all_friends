@@ -12,13 +12,12 @@ This file wins over both; the Intend-app tasks now point here.
 - [x] **Quick event logging on mobile** — THE mobile use case: you just hung out, log it now [audit §8, High]
       — shipped natively 2026-07-10 in tend-ios (`mobile-first-flows` branch): quick-log sheet
       reachable from every tab, due-first people picker, one-tap Log from Today/People rows
-- [ ] **Contacts integration (iOS)** [ios, 2026-07-10] — after "who to hang with" comes
-      "who to call": link Tend contacts to Apple Contacts (`CNContactStore`) so phone/email/photo
-      come from the system address book instead of manual `ContactField` entry. Shape:
-      per-contact link (store `CNContact` identifier) + match-by-name suggestions + import flow
-      for new people; the contact-detail Text/Call/Email action row then works for everyone,
-      not just contacts with hand-entered fields. Related: "CSV / Google Contacts import" (Tier 6)
-      covers the web side of the same need.
+- [ ] **Contacts integration (iOS)** [ios, 2026-07-10; spec'd 2026-07-11] — see
+      `specs/contacts-integration.md`. North star: "call this person" suggestions on the
+      mobile Today page (due contacts who are reachable → one-tap call/text → quick-log
+      prompt). Philosophy: Tend is where the relationship lives, Contacts is where the
+      contact point lives — link, don't sync; pull-only; no auto-create; match-before-create
+      dedup at the door. Also covers the Tier 6 "CSV / Google Contacts import" web side.
 - [ ] **Event editing on mobile** [intend]
 - [ ] Touch target audit — buttons are h-9/h-8/h-6; all interactive elements need ≥44px [audit §8, High]
 - [ ] PWA / Add to Home Screen [audit §8, Medium]
