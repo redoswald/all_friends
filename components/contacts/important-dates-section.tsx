@@ -332,8 +332,16 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
                       {formatDate(date.day, date.month, date.year)}
                       {age !== null && date.dateType === "BIRTHDAY" && ` • Age ${age}`}
                     </p>
+                    {date.source && (
+                      <p className="text-xs text-muted-foreground">
+                        from {date.source === "APPLE" ? "Apple Contacts" : "Google Contacts"} · updated{" "}
+                        {new Date(date.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </p>
+                    )}
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                    {/* Sourced dates refresh from the linked address book on re-link — edits would be overwritten */}
+                    {!date.source && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -342,6 +350,7 @@ export function ImportantDatesSection({ contactId, dates }: ImportantDatesSectio
                     >
                       <Pencil className="h-3 w-3" />
                     </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"

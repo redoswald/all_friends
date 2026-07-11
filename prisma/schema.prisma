@@ -212,6 +212,9 @@ model ImportantDate {
   day      Int     // 1-31
   month    Int     // 1-12
   year     Int?    // Nullable for unknown year
+  // Provenance: null = hand-entered; APPLE/GOOGLE = copied from a linked
+  // address book at link time (refreshed on re-link, removed on unlink)
+  source   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

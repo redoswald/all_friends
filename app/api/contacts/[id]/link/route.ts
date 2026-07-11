@@ -6,6 +6,39 @@ import { contactLinkSchema } from "@/lib/validations";
 const normalizePhone = (v: string) => v.replace(/\D/g, "").slice(-10);
 const normalizeEmail = (v: string) => v.trim().toLowerCase();
 
+// Upsert a provenance-tagged BIRTHDAY from the linked card. Same rules as
+// reach fields: refresh in place, remove when the card loses it, and defer to
+// a hand-entered birthday if one exists.
+async function syncBirthday(
+  contactId: string,
+  source: string,
+  birthday: { day: number; month: number; year?: number | null } | null | undefined
+) {
+  const existing = await prisma.importantDate.findMany({
+    where: { contactId, dateType: "BIRTHDAY" },
+  });
+  const sourced = existing.find((d) => d.source === source);
+  const manual = existing.some((d) => d.source !== source);
+
+  if (!birthday || manual) {
+    if (sourced) {
+      await prisma.importantDate.delete({ where: { id: sourced.id } });
+    }
+    return;
+  }
+
+  const data = { day: birthday.day, month: birthday.month, year: birthday.year ?? null };
+  if (sourced) {
+    if (sourced.day !== data.day || sourced.month !== data.month || sourced.year !== data.year) {
+      await prisma.importantDate.update({ where: { id: sourced.id }, data });
+    }
+  } else {
+    await prisma.importantDate.create({
+      data: { contactId, dateType: "BIRTHDAY", source, ...data },
+    });
+  }
+}
+
 // Copy the link's reach snapshot into provenance-tagged ContactFields so the
 // web has phone/email too. Refreshed in place on re-link; source-tagged rows
 // are removed when the linked contact no longer has that value. Skips values
@@ -104,6 +137,7 @@ export async function POST(
     });
 
     await syncReachFields(id, data.source, { phone: data.phone, email: data.email });
+    await syncBirthday(id, data.source, data.birthday);
 
     return NextResponse.json(link, { status: 201 });
   } catch (error) {
@@ -146,8 +180,11 @@ export async function DELETE(
       where: { contactId: id, source },
     });
 
-    // Copied reach fields are derived from the link — remove them with it
+    // Copied reach fields and dates are derived from the link — remove them with it
     await prisma.contactField.deleteMany({
+      where: { contactId: id, source },
+    });
+    await prisma.importantDate.deleteMany({
       where: { contactId: id, source },
     });
 

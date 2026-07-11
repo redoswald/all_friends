@@ -38,6 +38,14 @@ export const contactLinkSchema = z.object({
   fingerprint: z.string().max(200).optional().nullable(),
   phone: z.string().max(50).optional().nullable(),
   email: z.string().max(200).optional().nullable(),
+  birthday: z
+    .object({
+      day: z.number().int().min(1).max(31),
+      month: z.number().int().min(1).max(12),
+      year: z.number().int().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
 });
 
 // Parse date string as local date and convert to UTC noon
