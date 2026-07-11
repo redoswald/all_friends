@@ -16,7 +16,7 @@ export async function PATCH(
 
     // Verify contact ownership
     const contact = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!contact) {
@@ -77,7 +77,7 @@ export async function DELETE(
 
     // Verify contact ownership
     const contact = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!contact) {

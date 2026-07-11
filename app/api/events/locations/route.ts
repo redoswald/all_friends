@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const events = await prisma.event.findMany({
       where: {
         userId: user.id,
+        deletedAt: null,
         location: { not: null },
       },
       select: { location: true },

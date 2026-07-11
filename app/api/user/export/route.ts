@@ -10,23 +10,28 @@ export async function GET(request: NextRequest) {
       where: { id: user.id },
       include: {
         contacts: {
+          where: { deletedAt: null },
           include: {
             fields: true,
             importantDates: true,
             relationships: {
+              where: { relatedContact: { deletedAt: null } },
               include: {
                 relatedContact: { select: { id: true, name: true } },
               },
             },
             oooPeriods: true,
             tags: {
+              where: { tag: { deletedAt: null } },
               include: { tag: { select: { name: true, color: true } } },
             },
           },
         },
         events: {
+          where: { deletedAt: null },
           include: {
             contacts: {
+              where: { contact: { deletedAt: null } },
               include: {
                 contact: { select: { id: true, name: true } },
               },
@@ -34,7 +39,9 @@ export async function GET(request: NextRequest) {
             actionItems: true,
           },
         },
-        tags: true,
+        tags: {
+          where: { deletedAt: null },
+        },
       },
     });
 

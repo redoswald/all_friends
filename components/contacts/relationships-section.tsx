@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   type ContactRelationship,
@@ -107,7 +108,7 @@ export function RelationshipsSection({
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/contacts/${contactId}/relationships`, {
+      const res = await apiFetch(`/api/contacts/${contactId}/relationships`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -121,6 +122,10 @@ export function RelationshipsSection({
         resetForm();
         router.refresh();
       }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to add relationship");
+      }
     } finally {
       setLoading(false);
     }
@@ -130,7 +135,7 @@ export function RelationshipsSection({
     if (!deletingId) return;
 
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/contacts/${contactId}/relationships/${deletingId}`,
         { method: "DELETE" }
       );
@@ -140,6 +145,7 @@ export function RelationshipsSection({
         router.refresh();
       }
     } catch (error) {
+      if (error instanceof SessionExpiredError) return;
       toast.error("Failed to remove relationship");
     }
   };

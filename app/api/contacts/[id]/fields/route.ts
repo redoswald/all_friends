@@ -13,7 +13,7 @@ export async function GET(
 
     // Verify contact ownership
     const contact = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!contact) {
@@ -49,7 +49,7 @@ export async function POST(
 
     // Verify contact ownership
     const contact = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!contact) {

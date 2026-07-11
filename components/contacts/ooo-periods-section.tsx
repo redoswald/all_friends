@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { ContactOOOPeriod } from "@prisma/client";
 
@@ -100,7 +101,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
         ? `/api/contacts/${contactId}/ooo-periods/${editingId}`
         : `/api/contacts/${contactId}/ooo-periods`;
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: editingId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -116,6 +117,10 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
         resetForm();
         router.refresh();
       }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to save OOO period");
+      }
     } finally {
       setLoading(false);
     }
@@ -125,7 +130,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
     if (!deletingId) return;
 
     try {
-      const res = await fetch(`/api/contacts/${contactId}/ooo-periods/${deletingId}`, {
+      const res = await apiFetch(`/api/contacts/${contactId}/ooo-periods/${deletingId}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -134,6 +139,7 @@ export function OOOPeriodsSection({ contactId, periods }: OOOPeriodsSectionProps
         router.refresh();
       }
     } catch (error) {
+      if (error instanceof SessionExpiredError) return;
       toast.error("Failed to delete OOO period");
     }
   };

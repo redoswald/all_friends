@@ -32,6 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ContactStatus, getStatusText, CADENCE_OPTIONS } from "@/lib/cadence";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { FUNNEL_STAGE_LABELS } from "@/types";
 import { Contact, Tag } from "@prisma/client";
 import { FunnelStage } from "@/types";
@@ -156,7 +157,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
 
     setIsUpdating(true);
     try {
-      const res = await fetch("/api/contacts/bulk-tag", {
+      const res = await apiFetch("/api/contacts/bulk-tag", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -172,7 +173,9 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
         router.refresh();
       }
     } catch (error) {
-      toast.error("Failed to update tags");
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to update tags");
+      }
     } finally {
       setIsUpdating(false);
     }
@@ -183,7 +186,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
 
     setIsUpdating(true);
     try {
-      const res = await fetch("/api/contacts/bulk-update", {
+      const res = await apiFetch("/api/contacts/bulk-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -198,7 +201,9 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
         router.refresh();
       }
     } catch (error) {
-      toast.error("Failed to update contacts");
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to update contacts");
+      }
     } finally {
       setIsUpdating(false);
     }

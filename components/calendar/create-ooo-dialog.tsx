@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { toast } from "sonner";
 
 interface CreateOOODialogProps {
@@ -106,7 +107,7 @@ export function CreateOOODialog({
 
       const results = await Promise.all(
         selectedContacts.map((contact) =>
-          fetch(`/api/contacts/${contact.id}/ooo-periods`, {
+          apiFetch(`/api/contacts/${contact.id}/ooo-periods`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body,
@@ -126,8 +127,10 @@ export function CreateOOODialog({
       } else {
         toast.error(`Failed to create ${failed.length} OOO period(s)`);
       }
-    } catch {
-      toast.error("Failed to create OOO period");
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to create OOO period");
+      }
     } finally {
       setLoading(false);
     }

@@ -14,7 +14,7 @@ export async function GET(
 
     // Verify contact ownership
     const contact = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!contact) {
@@ -22,7 +22,7 @@ export async function GET(
     }
 
     const relationships = await prisma.contactRelationship.findMany({
-      where: { contactId: id },
+      where: { contactId: id, relatedContact: { deletedAt: null } },
       include: {
         relatedContact: {
           select: { id: true, name: true },
@@ -55,7 +55,7 @@ export async function POST(
 
     // Verify contact ownership
     const contact = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!contact) {
@@ -64,7 +64,7 @@ export async function POST(
 
     // Verify related contact exists and belongs to user
     const relatedContact = await prisma.contact.findFirst({
-      where: { id: data.relatedId, userId: user.id },
+      where: { id: data.relatedId, userId: user.id, deletedAt: null },
     });
 
     if (!relatedContact) {

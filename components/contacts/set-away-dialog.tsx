@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { format } from "date-fns";
 
 interface CurrentOOOPeriod {
@@ -56,7 +58,7 @@ export function SetAwayDialog({
     setLoading(true);
     try {
       // Create a new OOO period from today to the selected end date
-      const res = await fetch(`/api/contacts/${contactId}/ooo-periods`, {
+      const res = await apiFetch(`/api/contacts/${contactId}/ooo-periods`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -86,7 +88,7 @@ export function SetAwayDialog({
     setLoading(true);
     try {
       // Delete the current active OOO period
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/contacts/${contactId}/ooo-periods/${currentOOOPeriod.id}`,
         { method: "DELETE" }
       );
@@ -95,6 +97,10 @@ export function SetAwayDialog({
         setEndDate(undefined);
         onOpenChange(false);
         router.refresh();
+      }
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Something went wrong");
       }
     } finally {
       setLoading(false);

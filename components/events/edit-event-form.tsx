@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { EVENT_TYPE_LABELS, EventType } from "@/types";
 import { Event } from "@prisma/client";
 import {
@@ -59,7 +60,7 @@ export function EditEventForm({
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch("/api/events/locations")
+    apiFetch("/api/events/locations")
       .then((res) => res.ok ? res.json() : [])
       .then(setLocationSuggestions)
       .catch(() => {});
@@ -100,7 +101,7 @@ export function EditEventForm({
     };
 
     try {
-      const res = await fetch(`/api/events/${event.id}`, {
+      const res = await apiFetch(`/api/events/${event.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -114,7 +115,9 @@ export function EditEventForm({
       toast.success("Event updated");
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (!(err instanceof SessionExpiredError)) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

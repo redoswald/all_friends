@@ -26,9 +26,19 @@ This file wins over both; the Intend-app tasks now point here.
 
 ## Tier 2 — Trust & Safety
 
-- [ ] Soft delete in database (`deleted_at`) — all deletes are currently hard [audit §2, High]
-- [ ] Undo after delete — toast with 5-second undo window (depends on soft delete) [audit §2, Medium]
-- [ ] Error boundaries (`error.tsx`) + client-side 401 handling on fetch calls [audit §3/§13, High]
+- [x] Soft delete in database (`deletedAt`) — 2026-07-11 (`trust-and-safety` branch): nullable
+      `deletedAt` on Contact/Event/Tag; DELETE endpoints set it, `POST .../restore` clears it,
+      all reads (tend-web pages/API + tend-mcp Supabase queries) filter it. Tag-name collisions
+      revive the soft-deleted tag (unique `[userId, name]`). Child rows (fields/dates/OOO/
+      relationships) stay hard-delete — trivially re-enterable. No purge job yet: soft-deleted
+      rows linger indefinitely (fine at current data volumes; revisit if that changes).
+- [x] Undo after delete — 2026-07-11: Sonner toast with 5s Undo on contact/event delete
+      (tag delete has no web UI). iOS gets soft delete via the API automatically; a native
+      undo toast there is follow-up work.
+- [x] Error boundaries (`error.tsx`) + client-side 401 handling — 2026-07-11: `app/(app)/error.tsx`,
+      `app/error.tsx`, `app/global-error.tsx`; `lib/api-client.ts` `apiFetch` wrapper (session-expired
+      toast → /login) adopted across all client fetch call sites. Also fixed: unauthenticated
+      cookie-based API requests returned 500 (NEXT_REDIRECT caught in route handlers) — now 401.
 - [ ] Bulk delete with typed confirmation [audit §2/§5, Medium]
 
 ## Tier 3 — Reminders & Integrations

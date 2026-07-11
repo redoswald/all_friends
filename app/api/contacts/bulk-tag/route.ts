@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
       where: {
         id: { in: contactIds },
         userId: user.id,
+        deletedAt: null,
       },
     });
 
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
       where: {
         id: tagId,
         userId: user.id,
+        deletedAt: null,
       },
     });
 

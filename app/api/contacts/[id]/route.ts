@@ -17,16 +17,20 @@ export async function GET(
       where: {
         id,
         userId: user.id,
+        deletedAt: null,
       },
       include: {
         tags: {
+          where: { tag: { deletedAt: null } },
           include: { tag: true },
         },
         events: {
+          where: { event: { deletedAt: null } },
           include: {
             event: {
               include: {
                 contacts: {
+                  where: { contact: { deletedAt: null } },
                   include: { contact: true },
                 },
               },
@@ -76,7 +80,7 @@ export async function PATCH(
 
     // Verify ownership
     const existing = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!existing) {
@@ -112,6 +116,7 @@ export async function PATCH(
         data: contactData,
         include: {
           tags: {
+            where: { tag: { deletedAt: null } },
             include: { tag: true },
           },
         },
@@ -142,15 +147,17 @@ export async function DELETE(
     const { id } = await params;
 
     const contact = await prisma.contact.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId: user.id, deletedAt: null },
     });
 
     if (!contact) {
       return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
-    await prisma.contact.delete({
+    // Soft delete — restorable via POST /api/contacts/[id]/restore
+    await prisma.contact.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
 
     return NextResponse.json({ success: true });

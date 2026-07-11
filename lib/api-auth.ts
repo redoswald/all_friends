@@ -67,9 +67,15 @@ export async function requireUserFromRequest(request: NextRequest) {
     return user;
   }
 
-  // Fall back to cookie-based auth (existing web behavior)
-  const { requireUser } = await import("@/lib/auth");
-  return requireUser();
+  // Fall back to cookie-based auth. Throw APIAuthError (→ 401 JSON) rather than
+  // requireUser()'s redirect — a redirect thrown inside a route handler's
+  // try/catch surfaces as a 500 and the client never sees a 401.
+  const { getUser } = await import("@/lib/auth");
+  const user = await getUser();
+  if (!user) {
+    throw new APIAuthError();
+  }
+  return user;
 }
 
 // Error class for API auth failures (returns 401 JSON instead of redirect)

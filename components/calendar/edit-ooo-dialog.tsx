@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
@@ -66,7 +67,7 @@ export function EditOOODialog({ oooBlock, onOpenChange }: EditOOODialogProps) {
 
     setLoading(true);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/contacts/${oooBlock.contactId}/ooo-periods/${oooBlock.id}`,
         {
           method: "PATCH",
@@ -89,8 +90,10 @@ export function EditOOODialog({ oooBlock, onOpenChange }: EditOOODialogProps) {
         const data = await res.json();
         toast.error(data.error || "Failed to update");
       }
-    } catch {
-      toast.error("Failed to update OOO period");
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to update OOO period");
+      }
     } finally {
       setLoading(false);
     }
@@ -99,7 +102,7 @@ export function EditOOODialog({ oooBlock, onOpenChange }: EditOOODialogProps) {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/contacts/${oooBlock.contactId}/ooo-periods/${oooBlock.id}`,
         { method: "DELETE" }
       );
@@ -113,8 +116,10 @@ export function EditOOODialog({ oooBlock, onOpenChange }: EditOOODialogProps) {
       } else {
         toast.error("Failed to delete OOO period");
       }
-    } catch {
-      toast.error("Failed to delete OOO period");
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to delete OOO period");
+      }
     } finally {
       setLoading(false);
     }

@@ -33,18 +33,20 @@ async function getDashboardData() {
 
   // Get user's own OOO periods
   const selfContact = await prisma.contact.findFirst({
-    where: { userId: user.id, isSelf: true },
+    where: { userId: user.id, isSelf: true, deletedAt: null },
     select: { oooPeriods: { orderBy: { startDate: "asc" } } },
   });
   const userOOOPeriods = selfContact?.oooPeriods ?? [];
 
   const contacts = await prisma.contact.findMany({
-    where: { userId: user.id, isArchived: false, isSelf: false },
+    where: { userId: user.id, isArchived: false, isSelf: false, deletedAt: null },
     include: {
       tags: {
+        where: { tag: { deletedAt: null } },
         include: { tag: true },
       },
       events: {
+        where: { event: { deletedAt: null } },
         include: { event: true },
         orderBy: { event: { date: "desc" } },
       },
@@ -86,6 +88,7 @@ async function getDashboardData() {
   const eventsThisMonth = await prisma.event.count({
     where: {
       userId: user.id,
+      deletedAt: null,
       date: { gte: startOfMonth },
     },
   });

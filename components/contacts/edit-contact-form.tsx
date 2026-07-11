@@ -16,6 +16,7 @@ import {
 import { Tag, Contact } from "@prisma/client";
 import { FUNNEL_STAGE_LABELS } from "@/types";
 import { CADENCE_OPTIONS, isPresetCadence, getAnnualFrequencyText } from "@/lib/cadence";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
@@ -79,7 +80,7 @@ export function EditContactForm({ contact, tags, onSuccess }: EditContactFormPro
     };
 
     try {
-      const res = await fetch(`/api/contacts/${contact.id}`, {
+      const res = await apiFetch(`/api/contacts/${contact.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -93,7 +94,9 @@ export function EditContactForm({ contact, tags, onSuccess }: EditContactFormPro
       toast.success("Contact updated");
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (!(err instanceof SessionExpiredError)) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

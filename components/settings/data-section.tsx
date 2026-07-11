@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
+import { apiFetch, SessionExpiredError } from "@/lib/api-client";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export function DataSection() {
@@ -20,7 +21,7 @@ export function DataSection() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await fetch("/api/user/export");
+      const res = await apiFetch("/api/user/export");
       if (!res.ok) {
         toast.error("Failed to export data");
         return;
@@ -36,8 +37,10 @@ export function DataSection() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success("Data exported successfully");
-    } catch {
-      toast.error("Failed to export data");
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to export data");
+      }
     } finally {
       setExporting(false);
     }
@@ -46,15 +49,17 @@ export function DataSection() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch("/api/user/account", { method: "DELETE" });
+      const res = await apiFetch("/api/user/account", { method: "DELETE" });
       if (res.ok) {
         router.push("/login");
       } else {
         const data = await res.json();
         toast.error(data.error || "Failed to delete account");
       }
-    } catch {
-      toast.error("Failed to delete account");
+    } catch (error) {
+      if (!(error instanceof SessionExpiredError)) {
+        toast.error("Failed to delete account");
+      }
     } finally {
       setDeleting(false);
     }

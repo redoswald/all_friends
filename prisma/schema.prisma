@@ -50,6 +50,9 @@ model Contact {
   // Archive flag — hidden from active views but restorable
   isArchived Boolean @default(false)
 
+  // Soft delete — non-null means deleted (hidden everywhere, restorable via undo)
+  deletedAt DateTime?
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -76,6 +79,9 @@ model Tag {
 
   name  String
   color String?
+
+  // Soft delete — non-null means deleted (hidden everywhere, restorable via undo)
+  deletedAt DateTime?
 
   contacts ContactTag[]
 
@@ -108,6 +114,9 @@ model Event {
   // Calendar integration (Phase 3+)
   externalId     String?
   externalSource String?
+
+  // Soft delete — non-null means deleted (hidden everywhere, restorable via undo)
+  deletedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
