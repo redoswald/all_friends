@@ -29,11 +29,15 @@ export const updateContactSchema = createContactSchema.partial().extend({
   isArchived: z.boolean().optional(),
 });
 
-// External address-book link (Apple/Google) — see docs/specs/contacts-integration.md
+// External address-book link (Apple/Google) — see docs/specs/contacts-integration.md.
+// phone/email are optional reach snapshots copied into provenance-tagged
+// ContactFields so the web (which can't read the device address book) has them.
 export const contactLinkSchema = z.object({
   source: z.enum(["APPLE", "GOOGLE"]),
   externalId: z.string().min(1).max(500),
   fingerprint: z.string().max(200).optional().nullable(),
+  phone: z.string().max(50).optional().nullable(),
+  email: z.string().max(200).optional().nullable(),
 });
 
 // Parse date string as local date and convert to UTC noon

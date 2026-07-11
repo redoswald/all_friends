@@ -334,8 +334,16 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
                     {field.label && (
                       <p className="text-xs text-muted-foreground">{field.label}</p>
                     )}
+                    {field.source && (
+                      <p className="text-xs text-muted-foreground">
+                        from {field.source === "APPLE" ? "Apple Contacts" : "Google Contacts"} · updated{" "}
+                        {new Date(field.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </p>
+                    )}
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                    {/* Sourced fields refresh from the linked address book on re-link — edits would be overwritten */}
+                    {!field.source && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -344,6 +352,7 @@ export function ContactFieldsSection({ contactId, fields }: ContactFieldsSection
                     >
                       <Pencil className="h-3 w-3" />
                     </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
