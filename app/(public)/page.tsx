@@ -76,13 +76,13 @@ const suiteApps = [
   {
     name: "Attend",
     tagline: "Time, done intentionally",
-    href: "https://calendar.doneintentionally.com",
+    href: "https://time.doneintentionally.com",
     color: "#6D28D9",
   },
   {
     name: "Portend",
     tagline: "Beliefs, done intentionally",
-    href: "https://predict.doneintentionally.com",
+    href: "https://beliefs.doneintentionally.com",
     color: "#0F766E",
   },
 ];
