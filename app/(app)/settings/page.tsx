@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { ProfileSection } from "@/components/settings/profile-section";
 import { AppearanceSection } from "@/components/settings/appearance-section";
 import { SecuritySection } from "@/components/settings/security-section";
+import { AiSection } from "@/components/settings/ai-section";
 import { AppsSection } from "@/components/settings/apps-section";
 import { DataSection } from "@/components/settings/data-section";
 import { AboutSection } from "@/components/settings/about-section";
@@ -52,6 +53,7 @@ export default async function SettingsPage() {
       )}
 
       <AppearanceSection />
+      <AiSection />
       <SecuritySection email={user.email} providers={providers} />
       <AppsSection />
       <DataSection />

@@ -252,6 +252,11 @@ export default async function LandingPage() {
             you&apos;re overdue to see, log a hangout from a conversation, or
             plan a week of catch-ups without opening the app.
           </p>
+          <div className="mt-8">
+            <Button asChild size="lg">
+              <Link href="/connect">Connect your AI</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
