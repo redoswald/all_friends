@@ -329,17 +329,7 @@ module.exports = {
 
 ## Checklist for Claude Code
 
-- [ ] Update Tailwind config with new color palette
-- [ ] Replace all `bg-black` buttons with coral (`bg-coral-300`)
-- [ ] Add `font-family: 'DM Sans'` (add Google Font import)
-- [ ] Increase border-radius on all buttons and cards
-- [ ] Add gradient background to hero section
-- [ ] Add colored backgrounds to feature card icons
-- [ ] Update hover states to use coral/teal
-- [ ] Warm up the copy (see suggestions above)
-- [ ] Add subtle box-shadows to cards
-- [ ] Consider adding an illustration to the hero section
-- [ ] Update the footer CTA section with gradient background
+The implementation checklist that lived here shipped and was removed at the roadmap→GitHub Issues migration (2026-07); current work is tracked in [GitHub Issues](https://github.com/redoswald/tend-web/issues) and the [Done Intentionally board](https://github.com/users/redoswald/projects/1).
 
 ---
 

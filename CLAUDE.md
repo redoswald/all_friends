@@ -99,3 +99,9 @@ NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 NEXT_PUBLIC_SITE_URL  # Base URL for OAuth callbacks (http://localhost:3000 in dev)
 ```
+
+## Task tracking
+- Specs in docs/ are DESIGN docs — the what/why/constraints. They do not track state.
+- Work items live in GitHub Issues; the cross-suite portfolio view is https://github.com/users/redoswald/projects/1
+- To pick up work: `gh issue view <n>` for full context. Reference issues in PRs with "Fixes #<n>" so state updates on merge.
+- Do not add task checklists back into spec files. Session-scratch todo lists are fine but must not be committed.
