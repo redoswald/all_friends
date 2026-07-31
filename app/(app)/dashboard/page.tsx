@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Calendar, AlertCircle, Clock, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { NeedsAttentionList } from "@/components/dashboard/needs-attention-list";
+import { TodayView } from "@/components/dashboard/today-view";
+import type { FunnelStage } from "@/types";
 
 // Check if a contact is "incomplete" - only has name and default values
 function isIncompleteContact(contact: {
@@ -97,6 +99,7 @@ async function getDashboardData() {
   const incompleteContacts = contacts.filter(isIncompleteContact);
 
   return {
+    userName: user.name,
     needsAttention,
     incompleteContacts,
     stats: {
@@ -110,10 +113,27 @@ async function getDashboardData() {
 }
 
 export default async function DashboardPage() {
-  const { needsAttention, incompleteContacts, stats } = await getDashboardData();
+  const { userName, needsAttention, incompleteContacts, stats } =
+    await getDashboardData();
 
   return (
-    <div className="space-y-6">
+    <>
+    <TodayView
+      firstName={userName?.split(" ")[0] ?? null}
+      stats={{
+        overdueContacts: stats.overdueContacts,
+        dueContacts: stats.dueContacts,
+        eventsThisMonth: stats.eventsThisMonth,
+        totalContacts: stats.totalContacts,
+      }}
+      people={needsAttention.map((c) => ({
+        id: c.id,
+        name: c.name,
+        funnelStage: c.funnelStage as FunnelStage,
+        status: c.status,
+      }))}
+    />
+    <div className="hidden md:block space-y-6">
       <h1 className="text-[2rem] font-semibold leading-tight">Dashboard</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -230,5 +250,6 @@ export default async function DashboardPage() {
         </Card>
       )}
     </div>
+    </>
   );
 }

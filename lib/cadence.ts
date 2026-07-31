@@ -69,7 +69,10 @@ export function calculateContactStatus(
 
   // Find the next available date after all OOO periods
   const adjustedDueDate = findNextAvailableDate(baseDueDate, oooPeriods);
-  const daysUntil = daysBetween(now, adjustedDueDate) * (adjustedDueDate >= now ? 1 : -1);
+  // Signed calendar-day distance. daysBetween already returns a negative
+  // value for past dates — negating it again flipped every overdue contact
+  // back to "due in N days", so nothing could ever read as overdue.
+  const daysUntil = calendarDaysBetween(now, adjustedDueDate);
 
   return {
     daysSinceLastEvent: daysSince,
@@ -118,6 +121,16 @@ function findNextAvailableDate(date: Date, periods: OOOPeriod[]): Date {
 function daysBetween(date1: Date, date2: Date): number {
   const diffTime = date2.getTime() - date1.getTime();
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Whole-calendar-day difference in local time, ignoring time of day.
+ * "Due today" is 0 regardless of the hour, so it counts as overdue.
+ */
+function calendarDaysBetween(from: Date, to: Date): number {
+  const a = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  const b = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 export function getStatusColor(status: ContactStatus): string {

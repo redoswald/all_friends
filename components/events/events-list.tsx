@@ -30,6 +30,7 @@ import { EventType } from "@/types";
 import { EditEventForm } from "./edit-event-form";
 import { RenderedNotes } from "./rendered-notes";
 import { formatDate } from "@/lib/date-utils";
+import { openQuickLog } from "@/lib/quick-log";
 
 interface ContactWithTags extends Contact {
   tags: { tag: Tag }[];
@@ -83,6 +84,15 @@ export function EventsList({ events, contacts }: EventsListProps) {
     }
   };
 
+  // On mobile, tapping a card opens the quick-log sheet in edit mode
+  // (parity with tend-ios tap-to-edit). Desktop keeps the dropdown menu.
+  const handleCardClick = (event: EventWithContacts, e: React.MouseEvent) => {
+    if (window.matchMedia("(min-width: 768px)").matches) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("a,button,[role='menuitem']")) return;
+    openQuickLog({ event });
+  };
+
   // Group events by month
   const groupedEvents: { [key: string]: EventWithContacts[] } = {};
   events.forEach((event) => {
@@ -103,7 +113,11 @@ export function EventsList({ events, contacts }: EventsListProps) {
           <h2 className="text-sm font-medium text-gray-500 mb-3">{month}</h2>
           <div className="space-y-3">
             {monthEvents.map((event) => (
-              <Card key={event.id}>
+              <Card
+                key={event.id}
+                onClick={(e) => handleCardClick(event, e)}
+                className="cursor-pointer md:cursor-auto"
+              >
                 <CardContent className="py-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
