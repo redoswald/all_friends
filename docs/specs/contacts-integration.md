@@ -60,14 +60,14 @@ if ambiguous).
 
 ## iOS phases
 
-1. ✅ **Link + reach (the core).** Contact detail → "Link to Apple Contact" →
+1. **Link + reach (the core).** Contact detail → "Link to Apple Contact" →
    `CNContactPickerViewController` (requires no contacts permission at all — maximally
    intentional, works under iOS 18 limited access). Store the link; Text/Call/Email row
    and photo render live from the system contact.
-2. ✅ **Today-page call suggestions (the payoff).** Due/overdue contacts who are linked with
+2. **Today-page call suggestions (the payoff).** Due/overdue contacts who are linked with
    a phone number get a call/text affordance on Today ("You're free — call Granylo?").
    After launching a call/text, prompt to quick-log it (CALL/MESSAGE event pre-filled).
-3. ✅ **Suggested links** (shipped 2026-07-11, with birthday added to the snapshot → source-tagged ImportantDate). With contacts permission (or limited selection), exact-name
+3. **Suggested links** (with birthday added to the snapshot → source-tagged ImportantDate). With contacts permission (or limited selection), exact-name
    matches surface as a review list — one tap to confirm each, never auto-linked.
    Entry: People tab menu → Link Suggestions.
 4. **Add from Contacts.** New-person flow can start from the picker: prefills name,
@@ -85,6 +85,8 @@ Shared pipeline for all file/API sources: **parse → normalize → match → re
   (web can't render live from Google the way iOS can from CNContactStore; provenance-
   tagged copy + manual "Refresh from Google" is the pragmatic web equivalent).
 - No background sync in either phase. Refresh is user-initiated.
+
+Status tracking: tend-ios#1 (phase 4) and tend-web#2 (web import).
 
 ## Explicitly out of scope
 

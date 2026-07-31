@@ -1,5 +1,7 @@
 # Personal Relationship Manager (PRM)
 
+*Historical founding spec (Feb 2026). Kept as design record; task tracking lives in GitHub Issues.*
+
 ## Overview
 
 A personal CRM web application for managing relationships with intention. The core problem: maintaining meaningful relationships requires tracking who you haven't seen in a while, what you talked about, and what level of investment each relationship needs. Spreadsheets work but lack visibility, richness, and a good UX.
