@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
@@ -17,6 +17,21 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Tend — Personal Relationship Manager",
   description: "Be the friend you wish you had. Track interactions, set reminders, and nurture your relationships.",
+  appleWebApp: {
+    capable: true,
+    title: "Tend",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAFAFE" },
+    { media: "(prefers-color-scheme: dark)", color: "#161622" },
+  ],
 };
 
 export default function RootLayout({
