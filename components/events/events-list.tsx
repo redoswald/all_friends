@@ -60,10 +60,7 @@ export function EventsList({ events, contacts }: EventsListProps) {
     );
   }
 
-  const handleDelete = async () => {
-    if (!deletingEventId) return;
-
-    const eventId = deletingEventId;
+  const deleteEvent = async (eventId: string) => {
     try {
       const res = await apiFetch(`/api/events/${eventId}`, {
         method: "DELETE",
@@ -81,6 +78,16 @@ export function EventsList({ events, contacts }: EventsListProps) {
       if (!(error instanceof SessionExpiredError)) {
         toast.error("Failed to delete event");
       }
+    }
+  };
+
+  // Mobile skips the confirm dialog — the delete is soft and the undo toast
+  // covers recovery (matching tend-ios). Desktop keeps the confirm.
+  const requestDelete = (eventId: string) => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setDeletingEventId(eventId);
+    } else {
+      deleteEvent(eventId);
     }
   };
 
@@ -189,7 +196,7 @@ export function EventsList({ events, contacts }: EventsListProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-error"
-                          onSelect={() => setDeletingEventId(event.id)}
+                          onSelect={() => requestDelete(event.id)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
@@ -227,7 +234,7 @@ export function EventsList({ events, contacts }: EventsListProps) {
         onOpenChange={(open) => !open && setDeletingEventId(null)}
         title="Delete event"
         description="Are you sure you want to delete this event? You'll have a few seconds to undo."
-        onConfirm={handleDelete}
+        onConfirm={() => deletingEventId && deleteEvent(deletingEventId)}
       />
     </div>
   );
