@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -39,6 +38,7 @@ import { ImportantDatesSection } from "./important-dates-section";
 import { RelationshipsSection } from "./relationships-section";
 import { OOOPeriodsSection } from "./ooo-periods-section";
 import { formatDate } from "@/lib/date-utils";
+import { openQuickLog } from "@/lib/quick-log";
 
 interface RelationshipWithRelated extends ContactRelationship {
   relatedContact: { id: string; name: string };
@@ -168,10 +168,7 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
     }
   };
 
-  const handleDeleteEvent = async () => {
-    if (!deletingEventId) return;
-
-    const eventId = deletingEventId;
+  const deleteEventNow = async (eventId: string) => {
     try {
       const res = await apiFetch(`/api/events/${eventId}`, {
         method: "DELETE",
@@ -189,6 +186,16 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
       if (!(error instanceof SessionExpiredError)) {
         toast.error("Failed to delete event");
       }
+    }
+  };
+
+  // Mobile skips the confirm dialog (soft delete + undo toast, matching the
+  // timeline); desktop keeps the confirm.
+  const requestDeleteEvent = (eventId: string) => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      setDeletingEventId(eventId);
+    } else {
+      deleteEventNow(eventId);
     }
   };
 
@@ -215,13 +222,22 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          <Button
+            size="sm"
+            onClick={() => {
+              // Mobile gets the quick-log sheet preselected with this person;
+              // desktop keeps the full Log Event dialog
+              if (window.matchMedia("(min-width: 768px)").matches) {
+                setEventDialogOpen(true);
+              } else {
+                openQuickLog({ contactIds: [contact.id] });
+              }
+            }}
+          >
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Log Event</span>
+          </Button>
           <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Log Event</span>
-              </Button>
-            </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>Log Event</DialogTitle>
@@ -516,7 +532,15 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
                   {allEvents.map(({ event, isMention }) => (
                     <div
                       key={event.id}
-                      className="flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0"
+                      className={`flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0 ${isMention ? "" : "cursor-pointer md:cursor-auto"}`}
+                      onClick={(e) => {
+                        // Mobile tap-to-edit via the quick-log sheet (parity
+                        // with the Timeline tab); desktop uses the menu
+                        if (isMention) return;
+                        if (window.matchMedia("(min-width: 768px)").matches) return;
+                        if ((e.target as HTMLElement).closest("a,button,[role='menuitem']")) return;
+                        openQuickLog({ event });
+                      }}
                     >
                       <div className="p-2 bg-gray-100 rounded-full">
                         <Calendar className="h-4 w-4 text-gray-700" />
@@ -567,7 +591,7 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-error"
-                            onSelect={() => setDeletingEventId(event.id)}
+                            onSelect={() => requestDeleteEvent(event.id)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
@@ -622,7 +646,7 @@ export function ContactDetail({ contact, tags, contacts, mentionedInEvents = [] 
         onOpenChange={(open) => !open && setDeletingEventId(null)}
         title="Delete event"
         description="Are you sure you want to delete this event? You'll have a few seconds to undo."
-        onConfirm={handleDeleteEvent}
+        onConfirm={() => deletingEventId && deleteEventNow(deletingEventId)}
       />
     </div>
   );

@@ -38,7 +38,8 @@ import { Contact, Tag } from "@prisma/client";
 import { FunnelStage } from "@/types";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
-import { ArrowUp, ArrowDown, ArrowUpDown, Tags, X, Plus, Minus, Users, Clock, Archive, MapPin, Columns3 } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Tags, X, Plus, Minus, Users, Clock, Archive, MapPin, Columns3, ChevronDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ContactWithDerived extends Contact {
   tags: { tag: Tag }[];
@@ -82,6 +83,19 @@ function saveVisibleColumns(columns: Set<ColumnKey>) {
   localStorage.setItem("contacts-visible-columns", JSON.stringify([...columns]));
 }
 
+// Mobile filter rail: one active filter at a time (parity with tend-ios)
+type MobileFilter = "all" | "overdue" | "dueSoon" | FunnelStage;
+
+// iOS People-tab stage menu order (closest first)
+const STAGE_MENU_ORDER: FunnelStage[] = [
+  "CLOSE",
+  "ESTABLISHED",
+  "DEVELOPING",
+  "ACQUAINTANCE",
+  "PROSPECT",
+  "DORMANT",
+];
+
 // Define stage order for sorting
 const STAGE_ORDER: Record<string, number> = {
   PROSPECT: 0,
@@ -103,6 +117,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
   const [locationOpen, setLocationOpen] = useState(false);
   const [locationValue, setLocationValue] = useState("");
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(loadVisibleColumns);
+  const [mobileFilter, setMobileFilter] = useState<MobileFilter>("all");
 
   const isColumnVisible = (key: ColumnKey) => visibleColumns.has(key);
 
@@ -578,8 +593,116 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
       )}
 
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-2">
-        {sortedContacts.map((contact) => (
+      <div className="md:hidden space-y-3">
+        {(() => {
+          const isDueSoonFilter = (c: ContactWithDerived) =>
+            (c.status.isDue || c.status.isDueSoon) && !c.status.isOverdue;
+          const overdueCount = sortedContacts.filter((c) => c.status.isOverdue).length;
+          const dueSoonCount = sortedContacts.filter(isDueSoonFilter).length;
+          const activeStage =
+            mobileFilter !== "all" && mobileFilter !== "overdue" && mobileFilter !== "dueSoon"
+              ? mobileFilter
+              : null;
+          const filtered = sortedContacts.filter((c) =>
+            mobileFilter === "all"
+              ? true
+              : mobileFilter === "overdue"
+                ? c.status.isOverdue
+                : mobileFilter === "dueSoon"
+                  ? isDueSoonFilter(c)
+                  : c.funnelStage === mobileFilter
+          );
+          const emptyCopy =
+            mobileFilter === "overdue"
+              ? "No one is overdue. Nice work!"
+              : mobileFilter === "dueSoon"
+                ? "No one is coming due."
+                : activeStage
+                  ? `No one in ${FUNNEL_STAGE_LABELS[activeStage]} yet.`
+                  : null;
+
+          const chipClass = (active: boolean, activeColor: string) =>
+            cn(
+              "flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium transition-colors",
+              active
+                ? cn("border-transparent text-white", activeColor)
+                : "bg-[var(--ds-white)] text-foreground"
+            );
+
+          return (
+            <>
+              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none]">
+                <button
+                  type="button"
+                  onClick={() => setMobileFilter("all")}
+                  className={chipClass(mobileFilter === "all", "bg-accent-500")}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilter("overdue")}
+                  className={chipClass(mobileFilter === "overdue", "bg-error")}
+                >
+                  Overdue
+                  {overdueCount > 0 && (
+                    <span
+                      className={cn(
+                        "text-xs font-semibold",
+                        mobileFilter === "overdue" ? "text-white/90" : "text-error"
+                      )}
+                    >
+                      {overdueCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilter("dueSoon")}
+                  className={chipClass(mobileFilter === "dueSoon", "bg-amber-500")}
+                >
+                  Due soon
+                  {dueSoonCount > 0 && (
+                    <span
+                      className={cn(
+                        "text-xs font-semibold",
+                        mobileFilter === "dueSoon" ? "text-white/90" : "text-amber-600"
+                      )}
+                    >
+                      {dueSoonCount}
+                    </span>
+                  )}
+                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className={chipClass(!!activeStage, "bg-accent-500")}
+                    >
+                      {activeStage ? FUNNEL_STAGE_LABELS[activeStage] : "Stage"}
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {STAGE_MENU_ORDER.map((stage) => (
+                      <DropdownMenuItem
+                        key={stage}
+                        onSelect={() =>
+                          setMobileFilter(activeStage === stage ? "all" : stage)
+                        }
+                      >
+                        <span className="flex-1">{FUNNEL_STAGE_LABELS[stage]}</span>
+                        {activeStage === stage && <Check className="h-4 w-4" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              {filtered.length === 0 && emptyCopy && (
+                <p className="py-8 text-center text-sm text-gray-500">{emptyCopy}</p>
+              )}
+              <div className="space-y-2">
+        {filtered.map((contact) => (
           <div
             key={contact.id}
             className={`border rounded-lg p-3 ${selectedIds.has(contact.id) ? "bg-teal-50 border-teal-200" : "bg-[var(--ds-white)]"}`}
@@ -655,6 +778,10 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
             </div>
           </div>
         ))}
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* Desktop Table View */}
