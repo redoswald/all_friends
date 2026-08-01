@@ -623,7 +623,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
 
           const chipClass = (active: boolean, activeColor: string) =>
             cn(
-              "flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium transition-colors",
+              "flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium transition-colors",
               active
                 ? cn("border-transparent text-white", activeColor)
                 : "bg-[var(--ds-white)] text-foreground"
