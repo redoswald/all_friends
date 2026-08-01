@@ -314,7 +314,7 @@ export function QuickLogSheet({
                       key={person.type === "existing" ? person.id : `new-${index}`}
                       type="button"
                       onClick={() => removePerson(index)}
-                      className="flex items-center gap-1.5 rounded-full bg-accent-50 py-1.5 pl-3 pr-2 text-sm"
+                      className="flex min-h-10 items-center gap-1.5 rounded-full bg-accent-50 py-1.5 pl-3 pr-2 text-sm"
                     >
                       {person.name}
                       {person.type === "new" && (
@@ -460,7 +460,7 @@ export function QuickLogSheet({
                     type="button"
                     onClick={() => setWhen(value)}
                     className={cn(
-                      "min-h-10 rounded-full px-4 text-sm font-medium transition-colors",
+                      "min-h-11 rounded-full px-4 text-sm font-medium transition-colors",
                       when === value
                         ? "bg-accent-500 text-white"
                         : "border bg-background text-foreground"
@@ -486,7 +486,7 @@ export function QuickLogSheet({
                 <button
                   type="button"
                   onClick={() => setDetailsOpen(true)}
-                  className="flex min-h-10 items-center gap-2 text-accent-400"
+                  className="flex min-h-11 items-center gap-2 text-accent-400"
                 >
                   <TextCursorInput className="h-4 w-4" />
                   Add a note, place, or title

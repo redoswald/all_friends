@@ -135,7 +135,7 @@ export function TodayView({ firstName, stats, people }: TodayViewProps) {
                       e.stopPropagation();
                       openQuickLog({ contactIds: [person.id] });
                     }}
-                    className="flex min-h-9 shrink-0 items-center gap-1 rounded-full bg-accent-50 px-3.5 text-xs font-semibold text-accent-500"
+                    className="flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-accent-50 px-3.5 text-xs font-semibold text-accent-500"
                   >
                     <span className="text-sm leading-none">+</span> Log
                   </button>
