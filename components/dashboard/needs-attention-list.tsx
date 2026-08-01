@@ -31,7 +31,7 @@ export function NeedsAttentionList({ contacts, totalContacts }: NeedsAttentionLi
           title="No contacts yet"
           description="Add your first contact to get started!"
           actionLabel="Add Contact"
-          actionHref="/contacts"
+          actionHref="/contacts?new=1"
         />
       );
     }

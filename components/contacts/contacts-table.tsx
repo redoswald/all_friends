@@ -322,7 +322,7 @@ export function ContactsTable({ contacts, tags }: ContactsTableProps) {
         title="No contacts yet"
         description="Add your first contact to start tracking your relationships."
         actionLabel="Add Contact"
-        actionHref="/contacts"
+        onAction={() => document.dispatchEvent(new Event("open-add-contact"))}
       />
     );
   }

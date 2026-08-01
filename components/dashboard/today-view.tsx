@@ -154,7 +154,7 @@ export function TodayView({ firstName, stats, people }: TodayViewProps) {
             Add someone you care about to start tending your relationships.
           </p>
           <Link
-            href="/contacts"
+            href="/contacts?new=1"
             className="mt-1 rounded-3xl bg-accent-500 px-6 py-3 text-sm font-medium text-white"
           >
             Add Person

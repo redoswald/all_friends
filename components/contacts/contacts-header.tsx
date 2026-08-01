@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,8 +36,25 @@ interface ContactsHeaderProps {
 export function ContactsHeader({ tags, viewMode, onViewModeChange }: ContactsHeaderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  // ?new=1 opens the dialog on arrival (empty-state CTAs elsewhere link here)
+  const [dialogOpen, setDialogOpen] = useState(searchParams.get("new") === "1");
   const [search, setSearch] = useState(searchParams.get("search") || "");
+
+  useEffect(() => {
+    const open = () => setDialogOpen(true);
+    document.addEventListener("open-add-contact", open);
+    return () => document.removeEventListener("open-add-contact", open);
+  }, []);
+
+  const handleDialogChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open && searchParams.get("new") === "1") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("new");
+      const qs = params.toString();
+      router.replace(`/contacts${qs ? `?${qs}` : ""}`);
+    }
+  };
 
   const updateFilter = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -81,7 +98,7 @@ export function ContactsHeader({ tags, viewMode, onViewModeChange }: ContactsHea
               </Button>
             }
           />
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="h-4 w-4 sm:mr-2" />
