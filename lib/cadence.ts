@@ -74,12 +74,19 @@ export function calculateContactStatus(
   // back to "due in N days", so nothing could ever read as overdue.
   const daysUntil = calendarDaysBetween(now, adjustedDueDate);
 
+  // The "due" window scales with the cadence (a quarter of it, capped at
+  // 7 days) so short cadences aren't flagged immediately: with a flat
+  // 7-day window, weekly-cadence contacts were "due" again the moment a
+  // moment was logged. Monthly and longer cadences keep the old 7/14 split.
+  const dueWindow = Math.min(7, Math.max(1, Math.round(cadenceDays / 4)));
+
   return {
     daysSinceLastEvent: daysSince,
     daysUntilDue: daysUntil,
     // Not due/overdue if contact is away or there's an upcoming event planned
-    isDue: !isAway && !hasUpcomingEvent && daysUntil <= 7 && daysUntil > 0,
-    isDueSoon: !isAway && !hasUpcomingEvent && daysUntil <= 14 && daysUntil > 7,
+    isDue: !isAway && !hasUpcomingEvent && daysUntil <= dueWindow && daysUntil > 0,
+    isDueSoon:
+      !isAway && !hasUpcomingEvent && daysUntil > dueWindow && daysUntil <= dueWindow * 2,
     isOverdue: !isAway && !hasUpcomingEvent && daysUntil <= 0,
     hasCadence,
     hasUpcomingEvent,
